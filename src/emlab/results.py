@@ -13,7 +13,7 @@ def native(value):
     return value
 
 
-def curve(title, x, series, xlabel, ylabel, xscale="linear", yscale="linear", valid=None):
+def curve(title, x, series, xlabel, ylabel, xscale="linear", yscale="linear", valid=None, ylim=None):
     return {
         "kind": "curve",
         "title": title,
@@ -24,6 +24,7 @@ def curve(title, x, series, xlabel, ylabel, xscale="linear", yscale="linear", va
         "xscale": xscale,
         "yscale": yscale,
         "valid": valid,
+        "ylim": ylim,
     }
 
 
@@ -90,6 +91,17 @@ def validate(result):
             x = np.asarray(arrays[plot["x"]])
             if x.ndim != 1 or x.size < 1 or np.iscomplexobj(x):
                 raise ValueError("one-dimensional curve coordinates required")
+            limits = plot.get("ylim")
+            if limits is not None:
+                limits = np.asarray(limits)
+                if (
+                    limits.shape != (2,)
+                    or np.iscomplexobj(limits)
+                    or not np.all(np.isfinite(limits))
+                    or limits[0] >= limits[1]
+                    or (plot["yscale"] == "log" and limits[0] <= 0)
+                ):
+                    raise ValueError("ordered finite real axis limits required")
             valid = np.ones(len(x), bool) if plot["valid"] is None else arrays[plot["valid"]]
             if valid.dtype != bool or valid.shape != x.shape or not np.any(valid):
                 raise ValueError("nonempty explicit boolean spectral validity mask required")

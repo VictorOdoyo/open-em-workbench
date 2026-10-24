@@ -209,6 +209,8 @@ def plot_result(result, path):
                     style = "--"
                 ax.plot(x, shown, style, label=series["label"], linewidth=1.6, markersize=4)
             ax.set(xscale=plot["xscale"], yscale=plot["yscale"])
+            if plot.get("ylim") is not None:
+                ax.set_ylim(plot["ylim"])
             ax.grid(alpha=0.22)
             ax.legend(fontsize=8)
         else:

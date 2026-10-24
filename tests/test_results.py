@@ -30,3 +30,17 @@ def test_complex_curve_abscissas_are_not_silently_cast_to_real():
             {"x": [1 + 1j, 2 + 2j], "y": [1, 2]},
             [m.curve("invalid", "x", [("y", "values")], "x", "y")],
         )
+
+
+def test_explicit_physical_axis_limits_are_preserved_and_validated():
+    result = m.make(
+        "axis-check",
+        {},
+        {"value": 1},
+        {"x": [1, 2], "y": [1, 1]},
+        [m.curve("conserved", "x", [("y", "constant")], "x", "y", ylim=[0, 1.1])],
+    )
+    assert result["plots"][0]["ylim"] == [0, 1.1]
+    result["plots"][0]["ylim"] = [2, 1]
+    with pytest.raises(ValueError, match="axis limits"):
+        m.validate(result)

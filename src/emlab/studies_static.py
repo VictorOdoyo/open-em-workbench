@@ -128,6 +128,7 @@ def dielectric_interface(scale=1, seed=42):
                 [("displacement_x_c_m2", "displacement")],
                 "x (m)",
                 "Dx (C/m^2)",
+                ylim=[0, 1.1 * float(np.max(dx[row]))],
             ),
             image("Piecewise dielectric map", "epsilon_r", grid, "Relative permittivity"),
             image("Solved potential", "potential_v", grid, "Potential (V)"),
