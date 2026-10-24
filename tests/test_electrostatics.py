@@ -62,3 +62,17 @@ def test_conductor_charge_and_field_energy_agree_for_parallel_plates():
     assert charges[1] == pytest.approx(expected * 2, rel=1e-12)
     assert charges[0] + charges[1] == pytest.approx(0, abs=1e-24)
     assert m.energy(grid, result["potential"], 3) == pytest.approx(0.5 * 2 * charges[1])
+
+
+def test_manufactured_solution_converges_quadratically_under_mesh_refinement():
+    from emlab.core import convergence_order, relative_error
+    from emlab.grid import from_bounds
+
+    spacings, errors = [], []
+    for nodes in (13, 25, 49):
+        grid = from_bounds((0, 1), (0, 1), nodes, nodes)
+        exact, density = m.manufactured_sine(grid, 3)
+        potential = m.solve(grid, 3, voltage=exact, charge_density=density)["potential"]
+        spacings.append(grid.dx)
+        errors.append(relative_error(exact, potential))
+    assert 1.95 < convergence_order(spacings, errors)[0] < 2.05

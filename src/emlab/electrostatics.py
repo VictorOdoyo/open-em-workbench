@@ -76,3 +76,13 @@ def conductor_charges(grid, labels, potential, epsilon_r=1, charge_density=0):
             raise ValueError("each conductor must be equipotential")
         charges[int(label)] = float(np.sum(reaction[mask]))
     return charges
+
+
+def manufactured_sine(grid, epsilon_r=1):
+    from .core import EPS0
+
+    x, y = grid.mesh()
+    width, height = grid.x[-1] - grid.x[0], grid.y[-1] - grid.y[0]
+    potential = np.sin(np.pi * (x - grid.x0) / width) * np.sin(np.pi * (y - grid.y0) / height)
+    density = EPS0 * epsilon_r * np.pi**2 * (1 / width**2 + 1 / height**2) * potential
+    return potential, density
