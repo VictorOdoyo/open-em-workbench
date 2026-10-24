@@ -41,3 +41,12 @@ def test_cpml_discrete_memory_approaches_continuous_coordinate_stretch():
     continuous = 1 / (kappa + sigma / (alpha + 1j * omega))
     assert discrete == pytest.approx(continuous, rel=1e-5)
     assert m.pml_coefficients(0, 1, 0, dt)[:2] == (1, 0)
+
+
+def test_one_dimensional_unit_courant_has_exact_linear_dispersion():
+    from emlab.core import C0
+
+    spacing = 0.01
+    k = np.linspace(1, 0.9 * np.pi / spacing, 21)[:, None]
+    omega = m.dispersion_frequency(k, [spacing], spacing / C0, C0)
+    assert np.allclose(omega, C0 * k[:, 0])

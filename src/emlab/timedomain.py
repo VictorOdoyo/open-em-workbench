@@ -81,3 +81,18 @@ def pml_coefficients(sigma_rate, kappa, alpha_rate, dt_s):
         where=denominator > 0,
     )
     return decay, memory, kappa
+
+
+def dispersion_frequency(wavenumber_components, spacings_m, dt_s, speed_m_s):
+    from .core import finite_array
+
+    spacing = finite_array(spacings_m, real=True, ndim=1)
+    wave = finite_array(wavenumber_components, real=True)
+    if wave.shape[-1] != spacing.size or np.any(spacing <= 0) or dt_s <= 0 or speed_m_s <= 0:
+        raise ValueError("wave-vector components aligned with positive spacings required")
+    if speed_m_s * dt_s * np.sqrt(np.sum(1 / spacing**2)) > 1 + 1e-12:
+        raise ValueError("unstable Courant number")
+    argument = speed_m_s * dt_s * np.sqrt(np.sum((np.sin(wave * spacing / 2) / spacing) ** 2, axis=-1))
+    if np.any(argument > 1 + 1e-12):
+        raise ValueError("unresolvable discrete wave")
+    return 2 * np.arcsin(np.minimum(argument, 1)) / dt_s
