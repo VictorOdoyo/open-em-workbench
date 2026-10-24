@@ -34,3 +34,17 @@ def nodal_field(grid, potential):
         raise ValueError("potential must match grid")
     gy, gx = np.gradient(potential, grid.dy, grid.dx, edge_order=2)
     return -gx, -gy
+
+
+def charge_reaction(grid, potential, epsilon_r=1, charge_density=0):
+    from .core import EPS0, finite_array
+    from .grid import dual_weights
+    from .operators import stiffness
+
+    potential = finite_array(potential, real=True)
+    if potential.shape != grid.shape:
+        raise ValueError("potential must match grid")
+    density = np.broadcast_to(finite_array(charge_density, real=True), grid.shape)
+    return (EPS0 * (stiffness(grid, epsilon_r) @ potential.ravel())).reshape(
+        grid.shape
+    ) - density * dual_weights(grid)

@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from emlab import electrostatics as m
 
@@ -22,3 +23,17 @@ def test_electric_field_sign_and_axis_order_follow_minus_gradient():
     for function in (m.electric_field, m.nodal_field):
         ex, ey = function(grid, 4 * x - 3 * y)
         assert np.allclose(ex, -4) and np.allclose(ey, 3)
+
+
+def test_gauss_charge_reaction_balances_source_charge_and_ground():
+    from emlab.core import EPS0
+    from emlab.grid import boundary_mask, dual_weights, from_bounds
+
+    grid = from_bounds((0, 1), (0, 1), 21, 21)
+    density = np.zeros(grid.shape)
+    density[10, 10] = EPS0 / grid.dx / grid.dy
+    result = m.solve(grid, charge_density=density)
+    reaction = m.charge_reaction(grid, result["potential"], charge_density=density)
+    fixed = boundary_mask(grid)
+    assert np.max(abs(reaction[~fixed])) < 1e-24
+    assert reaction[fixed].sum() == pytest.approx(-np.sum(density * dual_weights(grid)), rel=1e-12)
