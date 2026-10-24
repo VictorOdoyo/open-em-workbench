@@ -28,3 +28,17 @@ def phasor(samples, dt_s, frequency_hz, time_offset_s=0.0, window=None):
     weights = np.ones(len(samples)) if window is None else np.hanning(len(samples))
     scale = 1 if np.iscomplexobj(samples) or frequency_hz == 0 else 2
     return spectrum[0] * scale / (dt_s * weights.sum())
+
+
+def spectral_ratio(observed, reference, relative_floor=1e-3):
+    from .core import finite_array
+
+    observed, reference = finite_array(observed), finite_array(reference)
+    if observed.shape != reference.shape or not 0 < relative_floor < 1:
+        raise ValueError("aligned spectra and relative floor in (0,1) required")
+    peak = float(np.max(abs(reference)))
+    if peak == 0:
+        raise ValueError("reference contains no incident spectral energy")
+    valid = abs(reference) >= peak * relative_floor
+    ratio = np.divide(observed, reference, out=np.zeros_like(observed, dtype=complex), where=valid)
+    return ratio, valid

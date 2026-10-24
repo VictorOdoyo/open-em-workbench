@@ -19,3 +19,13 @@ def test_phasor_extraction_recovers_peak_not_rms_amplitude():
     real_signal = complex_signal.real
     assert m.phasor(real_signal, dt, frequency) == pytest.approx(3 * np.exp(0.2j))
     assert m.phasor(complex_signal, dt, frequency) == pytest.approx(3 * np.exp(0.2j))
+
+
+def test_spectral_normalization_retains_an_explicit_validity_mask():
+    reference = np.array([0, 1e-8, 1 + 1j])
+    observed = reference * (0.2 + 0.4j)
+    ratio, valid = m.spectral_ratio(observed, reference)
+    assert np.array_equal(valid, [False, False, True])
+    assert ratio[-1] == pytest.approx(0.2 + 0.4j)
+    with pytest.raises(ValueError, match="no incident"):
+        m.spectral_ratio(np.ones(3), np.zeros(3))
