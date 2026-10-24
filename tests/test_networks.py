@@ -76,3 +76,13 @@ def test_group_delay_recovers_known_propagation_time():
     frequency = np.linspace(1e8, 2e8, 101)
     delay = 7e-9
     assert np.allclose(m.group_delay(frequency, 0.7 * np.exp(-2j * np.pi * frequency * delay)), delay)
+
+
+def test_reference_plane_shift_has_twice_delay_for_reflection_and_sum_for_transmission():
+    scattering = np.ones((2, 2), complex) * 0.2
+    frequency = 1e9
+    delays = [0.1e-9, 0.3e-9]
+    shifted = m.shift_planes(scattering, frequency, delays)
+    assert shifted[0, 0] / 0.2 == pytest.approx(np.exp(-2j * np.pi * frequency * 2 * delays[0]))
+    assert shifted[1, 0] / 0.2 == pytest.approx(np.exp(-2j * np.pi * frequency * sum(delays)))
+    assert np.allclose(m.shift_planes(shifted, frequency, -np.array(delays)), scattering)

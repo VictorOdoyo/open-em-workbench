@@ -159,3 +159,15 @@ def group_delay(frequency_hz, transmission):
     if np.any(abs(transmission) < 1e-14):
         raise ValueError("group delay is undefined near transmission zeros")
     return -np.gradient(np.unwrap(np.angle(transmission)), 2 * np.pi * frequency, edge_order=2)
+
+
+def shift_planes(scattering, frequency_hz, delays_s):
+    from .core import finite_array
+
+    s = finite_array(scattering)
+    frequency = finite_array(frequency_hz, real=True)
+    delays = finite_array(delays_s, real=True)
+    if s.shape[-2:] != (2, 2) or delays.shape != (2,) or np.any(frequency < 0):
+        raise ValueError("two-port samples and two signed reference-plane delays required")
+    phase = np.exp(-2j * np.pi * frequency[..., None, None] * (delays[:, None] + delays[None, :]))
+    return s * phase
