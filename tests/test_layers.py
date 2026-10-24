@@ -16,3 +16,14 @@ def test_layer_propagation_handles_optically_thick_absorbers_without_overflow():
     assert np.all(np.isfinite(result)) and np.all(result == 0)
     vacuum = m.propagation(2, 0.3)
     assert vacuum[1, 0] == pytest.approx(np.exp(-0.6j))
+
+
+def test_empty_oblique_stack_reduces_to_independent_fresnel_formula():
+    from emlab.waves import fresnel_oblique
+
+    for polarization in ("te", "tm"):
+        system = m.components(1e9, [], [], epsilon_substrate=4, angle_radians=0.4, polarization=polarization)
+        interface = system["pieces"][0]
+        expected = fresnel_oblique(1e9, 1, 4, 0.4, polarization)
+        assert interface[0, 0] == pytest.approx(expected["r"])
+        assert interface[1, 0] == pytest.approx(expected["t"])
