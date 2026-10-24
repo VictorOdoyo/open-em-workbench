@@ -22,3 +22,11 @@ def test_impedance_step_is_unitary_with_power_wave_normalization():
     assert scattering[0, 0] == pytest.approx(1 / 3)
     assert scattering[1, 0] == pytest.approx(2 * np.sqrt(2) / 3)
     assert np.allclose(scattering.conj().T @ scattering, np.eye(2))
+
+
+def test_chain_conversion_matches_known_series_element_with_unequal_ports():
+    matrix = m.series(12 + 3j)
+    scattering = m.abcd_to_s(matrix, (35, 80))
+    assert np.allclose(m.s_to_abcd(scattering, (35, 80)), matrix)
+    with pytest.raises(ValueError, match="too small"):
+        m.s_to_abcd(np.zeros((2, 2)))

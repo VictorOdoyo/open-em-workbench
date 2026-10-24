@@ -51,3 +51,21 @@ def abcd_to_s(matrix, reference=(50.0, 50.0)):
     result[..., 1, 0] = factor / denominator
     result[..., 0, 1] = factor * (a * d - b * c) / denominator
     return result
+
+
+def s_to_abcd(scattering, reference=(50.0, 50.0)):
+    from .core import finite_array
+
+    s = finite_array(scattering)
+    z = finite_array(reference, real=True)
+    if s.shape[-2:] != (2, 2) or z.shape != (2,) or np.any(z <= 0):
+        raise ValueError("scattering matrices and two positive real references required")
+    s11, s12, s21, s22 = s[..., 0, 0], s[..., 0, 1], s[..., 1, 0], s[..., 1, 1]
+    if np.any(abs(s21) < 1e-14):
+        raise ValueError("transmission too small for stable chain conversion; cascade scattering instead")
+    result = np.empty(s.shape, complex)
+    result[..., 0, 0] = np.sqrt(z[0] / z[1]) * ((1 + s11) * (1 - s22) + s12 * s21) / (2 * s21)
+    result[..., 0, 1] = np.sqrt(z.prod()) * ((1 + s11) * (1 + s22) - s12 * s21) / (2 * s21)
+    result[..., 1, 0] = ((1 - s11) * (1 - s22) - s12 * s21) / (2 * s21 * np.sqrt(z.prod()))
+    result[..., 1, 1] = np.sqrt(z[1] / z[0]) * ((1 - s11) * (1 + s22) + s12 * s21) / (2 * s21)
+    return result
