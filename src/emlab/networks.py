@@ -114,3 +114,25 @@ def terminated_input(scattering, load_reflection):
     if np.any(abs(denominator) < 1e-15):
         raise ValueError("singular terminated network")
     return s[..., 0, 0] + s[..., 0, 1] * s[..., 1, 0] * load / denominator
+
+
+def reflection(load_impedance, reference=50.0):
+    if not np.isfinite(reference) or reference <= 0:
+        raise ValueError("positive finite real reference impedance required")
+    load = np.asarray(load_impedance, dtype=complex)
+    if np.any(np.isnan(load)) or np.any(np.isneginf(load.real)) or np.any(np.isinf(load.imag)):
+        raise ValueError("finite impedance or ideal positive-real open circuit required")
+    opened = np.isposinf(load.real)
+    safe = np.where(opened, reference, load)
+    if np.any(abs(safe + reference) == 0):
+        raise ValueError("singular reflection impedance")
+    return np.where(opened, 1 + 0j, (safe - reference) / (safe + reference))
+
+
+def standing_wave_ratio(reflection_coefficient):
+    magnitude = abs(np.asarray(reflection_coefficient))
+    if np.any(~np.isfinite(magnitude)) or np.any(magnitude > 1 + 1e-12):
+        raise ValueError("passive reflection magnitude at most one required")
+    magnitude = np.minimum(magnitude, 1)
+    with np.errstate(divide="ignore"):
+        return (1 + magnitude) / (1 - magnitude)

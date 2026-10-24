@@ -53,3 +53,10 @@ def test_terminated_series_network_matches_direct_input_impedance():
     series = m.abcd_to_s(m.series(25))
     load = (100 - 50) / (100 + 50)
     assert m.terminated_input(series, load) == pytest.approx((125 - 50) / (125 + 50))
+
+
+def test_open_short_matching_and_standing_wave_ratio():
+    assert np.allclose(m.reflection([0, 50, np.inf]), [-1, 0, 1])
+    assert m.standing_wave_ratio(0.5) == pytest.approx(3)
+    assert np.isinf(m.standing_wave_ratio(1))
+    assert abs(m.reflection(1j * 50)) == pytest.approx(1)
