@@ -37,3 +37,24 @@ class Yee1D:
     @property
     def magnetic_time_s(self):
         return (self.iteration - 0.5) * self.dt
+
+    def _gradient_e(self):
+        return np.diff(self.e) / self.dx
+
+    def _gradient_h(self):
+        return np.diff(self.h) / self.dx
+
+    def _update_electric(self, derivative, current):
+        self.e[1:-1] = self.ca[1:-1] * self.e[1:-1] - self.cb[1:-1] * (derivative + current)
+
+    def step(self, current_density=0):
+        from .core import finite_array
+
+        current = np.broadcast_to(finite_array(current_density, real=True), self.e.shape)
+        if current[0] != 0 or current[-1] != 0:
+            raise ValueError("impressed currents cannot occupy PEC boundary nodes")
+        self.h -= self.ch * self._gradient_e()
+        self._update_electric(self._gradient_h(), current[1:-1])
+        self.e[[0, -1]] = 0
+        self.iteration += 1
+        return self.e
