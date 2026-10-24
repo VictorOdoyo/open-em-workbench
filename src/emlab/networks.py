@@ -17,3 +17,17 @@ def shunt(admittance):
     result = np.broadcast_to(np.eye(2, dtype=complex), (*admittance.shape, 2, 2)).copy()
     result[..., 1, 0] = admittance
     return result
+
+
+def cascade(*matrices):
+    from .core import finite_array
+
+    if not matrices:
+        raise ValueError("at least one chain matrix required")
+    result = np.eye(2, dtype=complex)
+    for matrix in matrices:
+        matrix = finite_array(matrix)
+        if matrix.shape[-2:] != (2, 2):
+            raise ValueError("two by two chain matrices required")
+        result = result @ matrix
+    return result
