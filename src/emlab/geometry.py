@@ -42,3 +42,17 @@ def conductor_labels(grid, masks):
             raise ValueError("conductor overlaps another conductor or the exterior ground")
         labels[mask] = label
     return labels
+
+
+def material_map(grid, background=1, regions=()):
+    from .core import finite_array
+
+    result = np.full(
+        grid.shape, background, dtype=np.result_type(background, *[v for _, v in regions], float)
+    )
+    for mask, value in regions:
+        mask = np.asarray(mask)
+        if mask.shape != grid.shape or mask.dtype != bool:
+            raise ValueError("boolean material masks matching grid required")
+        result[mask] = value
+    return finite_array(result)

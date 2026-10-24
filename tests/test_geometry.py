@@ -33,3 +33,14 @@ def test_conductor_assignment_detects_contacts_and_overlaps():
     assert labels[3, 3] == 1 and labels[0, 0] == 0 and labels[1, 1] == -1
     with pytest.raises(ValueError, match="overlap"):
         m.conductor_labels(grid, [mask, mask])
+
+
+def test_material_painting_has_explicit_ordered_precedence():
+    from emlab.grid import Grid2D
+
+    grid = Grid2D(9, 9, 1, 1)
+    whole = np.ones(grid.shape, bool)
+    center = np.zeros(grid.shape, bool)
+    center[4, 4] = True
+    values = m.material_map(grid, 1, [(whole, 2), (center, 5 - 0.1j)])
+    assert values[4, 4] == 5 - 0.1j and values[3, 3] == 2
