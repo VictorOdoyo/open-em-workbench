@@ -178,3 +178,38 @@ def dielectric_shift(grid, electric_field, epsilon_r, delta_epsilon):
     if denominator <= 0:
         raise ValueError("nonzero mode energy required")
     return -0.5 * float(np.sum(change * density)) / denominator
+
+
+def slab_te_modes(frequency_hz, thickness_m, core_index, cladding_index):
+    from scipy.optimize import brentq
+
+    from .core import C0
+
+    if min(frequency_hz, thickness_m, cladding_index) <= 0 or core_index <= cladding_index:
+        raise ValueError("positive frequency/thickness and guiding core index contrast required")
+    k0 = 2 * np.pi * frequency_hz / C0
+    half = thickness_m / 2
+    normalized = k0 * half * np.sqrt(core_index**2 - cladding_index**2)
+    results = []
+    mode = 0
+    while mode * np.pi / 2 < normalized * (1 - 1e-14):
+        lower, upper = mode * np.pi / 2, min(normalized, (mode + 1) * np.pi / 2)
+
+        def condition(u):
+            return u - lower - np.arctan2(np.sqrt(max(normalized**2 - u**2, 0)), u)
+
+        transverse = brentq(condition, lower, upper, xtol=1e-14, rtol=1e-14)
+        decay = np.sqrt(max(normalized**2 - transverse**2, 0)) / half
+        beta = np.sqrt((k0 * core_index) ** 2 - (transverse / half) ** 2)
+        results.append(
+            {
+                "mode": mode,
+                "parity": "even" if mode % 2 == 0 else "odd",
+                "effective_index": float(beta / k0),
+                "beta_m": float(beta),
+                "decay_m": float(decay),
+                "transverse_m": float(transverse / half),
+            }
+        )
+        mode += 1
+    return results

@@ -105,3 +105,11 @@ def test_first_order_cavity_perturbation_matches_a_resolved_dielectric_change():
     changed = m.cavity_modes(grid, 1 + delta, count=1)
     measured = changed["cutoff_hz"][0] / initial["cutoff_hz"][0] - 1
     assert measured == pytest.approx(predicted, rel=1e-4)
+
+
+def test_symmetric_slab_fundamental_has_no_cutoff_and_is_bounded_by_material_indices():
+    for thickness in (0.1e-6, 2e-6, 10e-6):
+        modes = m.slab_te_modes(1e14, thickness, 1.5, 1.45)
+        assert modes[0]["mode"] == 0 and modes[0]["parity"] == "even"
+        assert all(1.45 < row["effective_index"] < 1.5 for row in modes)
+        assert all(row["decay_m"] > 0 for row in modes)
