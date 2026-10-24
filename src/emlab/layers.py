@@ -14,3 +14,15 @@ def interface(admittance_left, admittance_right):
     result[..., 1, 0] = 2 * left / denominator
     result[..., 0, 1] = 2 * right / denominator
     return result
+
+
+def propagation(kz, thickness_m):
+    from .core import finite_array
+
+    kz = finite_array(kz).astype(complex)
+    if thickness_m < 0 or not np.isfinite(thickness_m) or np.any(kz.imag > 1e-12):
+        raise ValueError("nonnegative thickness and outgoing passive longitudinal wavenumber required")
+    wave = np.exp(-1j * kz * thickness_m)
+    result = np.zeros((*wave.shape, 2, 2), complex)
+    result[..., 0, 1] = result[..., 1, 0] = wave
+    return result
