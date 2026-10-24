@@ -240,10 +240,14 @@ def plot_result(result, path):
                     ylim=(y[0] - (y[1] - y[0]) / 2, y[-1] + (y[-1] - y[-2]) / 2),
                     xticks=x,
                     yticks=y,
-                    aspect="equal",
+                    aspect=plot.get("aspect", "equal"),
                 )
             else:
-                ax.set(xlim=(plot["x"][0], plot["x"][-1]), ylim=(plot["y"][0], plot["y"][-1]), aspect="equal")
+                ax.set(
+                    xlim=(plot["x"][0], plot["x"][-1]),
+                    ylim=(plot["y"][0], plot["y"][-1]),
+                    aspect=plot.get("aspect", "equal"),
+                )
             fig.colorbar(shown, ax=ax, label=plot["colorbar"], pad=0.02)
         ax.set(title=plot["title"], xlabel=plot["xlabel"], ylabel=plot["ylabel"])
     for ax in list(axes.flat)[len(panels) :]:

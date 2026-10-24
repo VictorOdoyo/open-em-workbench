@@ -205,6 +205,7 @@ def debye_slab(scale=1, seed=42):
     device = Debye1D(nodes, spacing, static, high, tau, pml_cells=pml)
     baseline = CPML1D(nodes, spacing, pml_cells=pml)
     arrays, parameters = _pulse_capture(scale, device, baseline, start, stop)
+    arrays["final_polarization_c_m2"] = device.polarization.copy()
     epsilon = debye(arrays["frequency_hz"], 6, 2, tau)
     reference = stack(arrays["frequency_hz"], [epsilon], [(stop - start) * spacing])
     discrete = debye_permittivity(arrays["frequency_hz"], 6, 2, tau, device.dt)
