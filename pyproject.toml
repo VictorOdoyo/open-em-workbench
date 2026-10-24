@@ -11,7 +11,7 @@ keywords = ["electromagnetics", "fdtd", "electrostatics", "waveguides", "simulat
 description = "Reproducible field solvers and analytical experiments in computational electromagnetics"
 requires-python = ">=3.11"
 license = "MIT"
-dependencies = ["numpy>=2,<3", "scipy>=1.11,<2", "matplotlib>=3.8,<4"]
+dependencies = ["numpy>=2,<3", "scipy>=1.14,<2", "matplotlib>=3.9,<4"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<10", "ruff>=0.17,<0.18", "build>=1"]
