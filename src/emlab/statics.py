@@ -65,3 +65,15 @@ def line_charge(points_xy, charge_c_m, source_xy=(0.0, 0.0), epsilon_r=1.0, refe
         raise ValueError("line-charge observation is singular")
     factor = charge_c_m / (2 * np.pi * EPS0 * epsilon_r)
     return -factor * np.log(radius / reference_radius_m), factor * displacement / radius[..., None] ** 2
+
+
+def coaxial(radius_m, inner_radius_m, outer_radius_m, voltage_v=1.0):
+    from .core import finite_array
+
+    radius = finite_array(radius_m, real=True)
+    if not 0 < inner_radius_m < outer_radius_m or np.any(
+        (radius < inner_radius_m) | (radius > outer_radius_m)
+    ):
+        raise ValueError("observation radii must lie between ordered coaxial conductors")
+    logarithm = np.log(outer_radius_m / inner_radius_m)
+    return voltage_v * np.log(outer_radius_m / radius) / logarithm, voltage_v / (radius * logarithm)

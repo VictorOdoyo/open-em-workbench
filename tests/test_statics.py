@@ -49,3 +49,14 @@ def test_line_charge_gauss_law_and_reference_radius_gauge():
     assert potential == pytest.approx(0)
     assert EPS0 * 2 * np.pi * 0.2 * field[0] == pytest.approx(1e-9)
     assert field[1] == 0
+
+
+def test_coaxial_field_energy_equals_capacitance_work():
+    from emlab.capacitance import coaxial
+    from emlab.core import EPS0
+
+    radius = np.linspace(0.01, 0.03, 20001)
+    potential, field = m.coaxial(radius, 0.01, 0.03, 5)
+    energy = np.trapezoid(0.5 * EPS0 * 2.25 * field**2 * 2 * np.pi * radius, radius)
+    assert energy == pytest.approx(0.5 * coaxial(0.01, 0.03, 2.25) * 25, rel=1e-8)
+    assert potential[0] == pytest.approx(5) and potential[-1] == 0
