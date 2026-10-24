@@ -32,3 +32,8 @@ def test_debye_limits_and_relaxation_loss_peak():
     assert values[0] == pytest.approx(8)
     assert values[1] == pytest.approx(5 - 3j)
     assert values[2].real == pytest.approx(2)
+
+
+def test_lorentz_static_strength_and_resonance_sign():
+    assert m.lorentz(0, 2, 3, 1e9, 1e8) == pytest.approx(5)
+    assert m.lorentz(1e9, 2, 3, 1e9, 1e8) == pytest.approx(2 - 30j)

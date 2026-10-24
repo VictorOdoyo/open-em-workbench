@@ -41,3 +41,12 @@ def debye(frequency_hz, epsilon_static, epsilon_infinity, relaxation_s):
     return epsilon_infinity + (epsilon_static - epsilon_infinity) / (
         1 + 2j * np.pi * frequency * relaxation_s
     )
+
+
+def lorentz(frequency_hz, epsilon_infinity, strength, resonance_hz, damping_hz):
+    from .core import finite_array
+
+    f = finite_array(frequency_hz, real=True)
+    if np.any(f < 0) or min(epsilon_infinity, resonance_hz, damping_hz) <= 0 or strength < 0:
+        raise ValueError("passive Lorentz oscillator parameters required")
+    return epsilon_infinity + strength * resonance_hz**2 / (resonance_hz**2 - f**2 + 1j * damping_hz * f)
