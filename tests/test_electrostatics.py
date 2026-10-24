@@ -86,3 +86,22 @@ def test_discrete_energy_equals_source_plus_dirichlet_work():
     potential = m.solve(grid, 2, voltage=exact + 1, charge_density=density)["potential"]
     audit = m.work_balance(grid, potential, 2, boundary_mask(grid), density)
     assert abs(audit["defect"]) < 1e-23
+
+
+def test_layered_dielectric_has_continuous_displacement_and_discontinuous_electric_field():
+    from emlab.grid import from_bounds
+    from emlab.operators import harmonic_edges
+
+    grid = from_bounds((0, 1), (0, 0.2), 41, 7)
+    epsilon = np.where(grid.mesh()[0] <= 0.5, 2.0, 8.0)
+    fixed = np.zeros(grid.shape, bool)
+    fixed[:, [0, -1]] = True
+    voltage = np.zeros(grid.shape)
+    voltage[:, 0] = 1
+    potential = m.solve(grid, epsilon, fixed, voltage)["potential"]
+    dx, dy = m.displacement(grid, potential, epsilon)
+    assert np.ptp(dx) / np.mean(dx) < 1e-12
+    assert np.max(abs(dy)) < 1e-23
+    ex, _ = m.electric_field(grid, potential)
+    eps_face = harmonic_edges(grid, epsilon)[: ex.size].reshape(ex.shape)
+    assert np.allclose(ex * eps_face, ex[3, 0] * eps_face[3, 0])

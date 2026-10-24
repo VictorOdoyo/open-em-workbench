@@ -107,3 +107,13 @@ def work_balance(grid, potential, epsilon_r, fixed, charge_density=0):
         "boundary_work": boundary_work,
         "defect": stored - source_work - boundary_work,
     }
+
+
+def displacement(grid, potential, epsilon_r=1):
+    from .core import EPS0
+    from .operators import harmonic_edges
+
+    ex, ey = electric_field(grid, potential)
+    edges = harmonic_edges(grid, epsilon_r)
+    split = ex.size
+    return EPS0 * edges[:split].reshape(ex.shape) * ex, EPS0 * edges[split:].reshape(ey.shape) * ey
