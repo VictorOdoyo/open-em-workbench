@@ -179,3 +179,22 @@ def coupled_energy(inductance_matrix, currents_a):
 
     flux_linkage, energy = terminal_response(inductance_matrix, currents_a)
     return flux_linkage, energy
+
+
+def solve_az(grid, current_density_a_m2, mu_r=1.0, boundary_potential=0.0):
+    from .core import EPS0, MU0, finite_array
+    from .electrostatics import energy, nodal_field, solve
+
+    mu = np.broadcast_to(finite_array(mu_r, real=True), grid.shape)
+    current = np.broadcast_to(finite_array(current_density_a_m2, real=True), grid.shape)
+    if np.any(mu <= 0):
+        raise ValueError("positive relative permeability required")
+    result = solve(grid, 1 / mu, voltage=boundary_potential, charge_density=EPS0 * MU0 * current)
+    ex, ey = nodal_field(grid, result["potential"])
+    return {
+        "az_wb_m": result["potential"],
+        "bx_t": -ey,
+        "by_t": ex,
+        "energy_j_m": energy(grid, result["potential"], 1 / mu) / (EPS0 * MU0),
+        "residual": result["residual"],
+    }

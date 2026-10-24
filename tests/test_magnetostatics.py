@@ -102,3 +102,17 @@ def test_coupled_coil_energy_detects_impossible_mutual_coupling():
     assert energy == pytest.approx(0.5 * np.array([2, -1]) @ matrix @ [2, -1])
     with pytest.raises(ValueError):
         m.coupled_energy(1e-6 * np.array([[1, 2], [2, 1]]), [1, 1])
+
+
+def test_magnetostatic_vector_potential_matches_manufactured_current_and_energy():
+    from emlab.core import MU0, relative_error
+    from emlab.grid import dual_weights, from_bounds
+
+    grid = from_bounds((0, 1), (0, 1), 41, 41)
+    x, y = grid.mesh()
+    exact = 1e-5 * np.sin(np.pi * x) * np.sin(np.pi * y)
+    current = 2 * np.pi**2 * exact / (MU0 * 3)
+    result = m.solve_az(grid, current, 3)
+    assert relative_error(exact, result["az_wb_m"]) < 0.001
+    work = 0.5 * np.sum(current * result["az_wb_m"] * dual_weights(grid))
+    assert result["energy_j_m"] == pytest.approx(work, rel=1e-12)
