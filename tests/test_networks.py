@@ -47,3 +47,9 @@ def test_renormalization_matches_unequal_reference_chain_formula_even_for_ideal_
         original = m.abcd_to_s(matrix, (50, 50))
         result = m.renormalize(original, 50, (30, 100))
         assert np.allclose(result, m.abcd_to_s(matrix, (30, 100)))
+
+
+def test_terminated_series_network_matches_direct_input_impedance():
+    series = m.abcd_to_s(m.series(25))
+    load = (100 - 50) / (100 + 50)
+    assert m.terminated_input(series, load) == pytest.approx((125 - 50) / (125 + 50))

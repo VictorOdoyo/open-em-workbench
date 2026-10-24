@@ -101,3 +101,16 @@ def renormalize(scattering, old_reference, new_reference):
     p = np.diag((ratio + 1 / ratio) / 2)
     q = np.diag((ratio - 1 / ratio) / 2)
     return np.linalg.solve(p - s @ q, s @ p - q)
+
+
+def terminated_input(scattering, load_reflection):
+    from .core import finite_array
+
+    s = finite_array(scattering)
+    load = finite_array(load_reflection)
+    if s.shape[-2:] != (2, 2):
+        raise ValueError("two-port scattering required")
+    denominator = 1 - s[..., 1, 1] * load
+    if np.any(abs(denominator) < 1e-15):
+        raise ValueError("singular terminated network")
+    return s[..., 0, 0] + s[..., 0, 1] * s[..., 1, 0] * load / denominator
