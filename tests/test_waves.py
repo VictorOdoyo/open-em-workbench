@@ -58,3 +58,13 @@ def test_directional_decomposition_resolves_standing_wave_fields():
     recovered = m.wave_amplitudes(e, h, ETA0)
     assert recovered[0] == pytest.approx(forward)
     assert recovered[1] == pytest.approx(backward)
+
+
+def test_lossless_propagation_metrics_recover_material_velocity():
+    from emlab.core import C0
+    from emlab.materials import propagation
+
+    gamma, _ = propagation(1e9, 9)
+    result = m.propagation_metrics(1e9, gamma)
+    assert result["phase_velocity_m_s"] == pytest.approx(C0 / 3)
+    assert result["attenuation_db_m"] == pytest.approx(0)

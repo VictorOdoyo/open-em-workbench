@@ -83,3 +83,18 @@ def wave_amplitudes(electric, magnetic, impedance):
     if electric.shape != magnetic.shape or np.any(np.asarray(impedance).real <= 0):
         raise ValueError("colocated field traces and positive-real wave impedance required")
     return (electric + impedance * magnetic) / 2, (electric - impedance * magnetic) / 2
+
+
+def propagation_metrics(frequency_hz, gamma):
+    from .core import finite_array
+
+    frequency = finite_array(frequency_hz, real=True)
+    gamma = finite_array(gamma).astype(complex)
+    if np.any(frequency <= 0) or np.any(gamma.real < -1e-12) or np.any(gamma.imag <= 0):
+        raise ValueError("positive frequency and forward passive propagation required")
+    return {
+        "attenuation_np_m": gamma.real,
+        "attenuation_db_m": 20 / np.log(10) * gamma.real,
+        "phase_velocity_m_s": 2 * np.pi * frequency / gamma.imag,
+        "wavelength_m": 2 * np.pi / gamma.imag,
+    }
