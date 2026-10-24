@@ -394,3 +394,102 @@ def lossy_cavity(scale=1, seed=42):
         "Conductivity is passive and frequency independent; the decay reference includes electric Joule loss."
     )
     return result
+
+
+def absorber(scale=1, seed=42):
+    from .core import C0
+    from .fdtd1d import CPML1D, Mur1D, Yee1D, evolve, gaussian_packet
+    from .results import curve, make
+
+    nodes, spacing, steps, probe = 400 * scale + 1, 0.001 / scale, 500 * scale, 250 * scale
+    arrays, rows = {}, []
+    for name, constructor, options in (
+        ("PEC", Yee1D, {}),
+        ("Mur", Mur1D, {}),
+        ("CPML", CPML1D, {"pml_cells": 40 * scale}),
+    ):
+        state = constructor(nodes, spacing, **options)
+        gaussian_packet(state, 0.2, 0.015)
+        capture = evolve(state, steps, probes=(probe,), snapshot_stride=0)
+        trace = capture["electric"][:, 0]
+        time = capture["electric_time_s"]
+        incident = np.max(abs(trace[time < 0.4e-9]))
+        late = (time > 0.65e-9) & (time < 1.35e-9)
+        ratio = np.max(abs(trace[late])) / incident
+        rows.append({"boundary": name, "late_to_incident_amplitude": ratio, "incident_peak_v_m": incident})
+        arrays[name.lower() + "_trace"] = trace
+    convergence = []
+    for cells in (8, 16, 32, 48):
+        state = CPML1D(nodes, spacing, pml_cells=cells * scale)
+        gaussian_packet(state, 0.2, 0.015)
+        capture = evolve(state, steps, probes=(probe,))
+        trace = capture["electric"][:, 0]
+        time = capture["electric_time_s"]
+        ratio = np.max(abs(trace[(time > 0.65e-9) & (time < 1.35e-9)])) / np.max(abs(trace[time < 0.4e-9]))
+        convergence.append(
+            {
+                "pml_cells": cells * scale,
+                "thickness_m": cells * scale * spacing,
+                "late_to_incident_amplitude": ratio,
+            }
+        )
+    return make(
+        "fdtd-absorber",
+        {
+            "nodes": nodes,
+            "spacing_m": spacing,
+            "dt_s": state.dt,
+            "steps": steps,
+            "initial_packet_center_m": 0.2,
+            "packet_width_m": 0.015,
+            "probe_position_m": probe * spacing,
+            "late_window_s": [0.65e-9, 1.35e-9],
+            "pml_target_amplitude_reflection": 1e-8,
+            "pml_kappa_max": 3,
+            "pml_alpha_max_s": 0.05 * C0 / spacing,
+            "seed": seed,
+        },
+        {
+            "pec_return_amplitude": rows[0]["late_to_incident_amplitude"],
+            "mur_return_amplitude": rows[1]["late_to_incident_amplitude"],
+            "cpml_return_amplitude": rows[2]["late_to_incident_amplitude"],
+        },
+        {
+            **arrays,
+            "time_ns": time * 1e9,
+            "thickness_mm": [r["thickness_m"] * 1e3 for r in convergence],
+            "pml_return": [r["late_to_incident_amplitude"] for r in convergence],
+        },
+        [
+            curve(
+                "Full probe traces retain the reflected pulse",
+                "time_ns",
+                [("pec_trace", "PEC"), ("mur_trace", "Mur"), ("cpml_trace", "CPML")],
+                "Electric sample time (ns)",
+                "Ey (V/m)",
+            ),
+            curve(
+                "Measured late return versus absorber thickness",
+                "thickness_mm",
+                [("pml_return", "CPML return amplitude")],
+                "PML thickness (mm)",
+                "Return / incident amplitude",
+                yscale="log",
+            ),
+        ],
+        {
+            "boundaries": rows,
+            "pml_thickness": convergence,
+            "traces": [
+                {"time_s": t * 1e-9, "pec_v_m": p, "mur_v_m": u, "cpml_v_m": c}
+                for t, p, u, c in zip(
+                    time * 1e9, arrays["pec_trace"], arrays["mur_trace"], arrays["cpml_trace"], strict=True
+                )
+            ],
+        },
+        [
+            "Return amplitude is measured in a fixed late-time window for this pulse and grid.",
+            "The PML target is a continuum design parameter, not a measured reflection guarantee.",
+            "The initial magnetic half-step uses the smooth traveling-packet approximation.",
+        ],
+    )

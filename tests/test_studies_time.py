@@ -34,3 +34,10 @@ def test_lossy_cavity_study_recovers_positive_quality_factor_and_discrete_decay(
     assert summary["relative_discrete_quality_error"] < 1e-8
     assert 1 < summary["quality_factor_measured"] < 100
     assert summary["pole_fit_residual"] < 1e-10
+
+
+def test_absorber_study_retains_large_pec_return_and_reports_measured_cpml_limit():
+    summary = m.absorber()["summary"]
+    assert summary["pec_return_amplitude"] > 0.8
+    assert summary["cpml_return_amplitude"] < 0.002
+    assert summary["mur_return_amplitude"] < 0.01
