@@ -69,3 +69,9 @@ def test_fixed_voltage_force_attracts_parallel_plates():
 
     assert force < 0
     assert force == pytest.approx(-0.5 * EPS0 * 0.01 * voltage**2 / gap**2, rel=1e-6)
+
+
+def test_terminal_response_rejects_small_but_physical_nonreciprocity():
+    matrix = 1e-12 * np.array([[2.0, -1.0], [-1.000001, 2.0]])
+    with pytest.raises(ValueError, match="reciprocal"):
+        m.terminal_response(matrix, [1.0, 0.0])
