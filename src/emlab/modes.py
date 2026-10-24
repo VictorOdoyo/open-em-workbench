@@ -119,3 +119,20 @@ def guide_velocities(frequency_hz, cutoff_hz, epsilon_r=1.0, mu_r=1.0):
     speed = C0 / np.sqrt(epsilon_r * mu_r)
     factor = np.sqrt(1 - (cutoff_hz / frequency) ** 2)
     return speed / factor, speed * factor
+
+
+def project(grid, field, basis, material_weight=1.0):
+    from .core import finite_array
+    from .grid import dual_weights
+
+    field, basis = finite_array(field), finite_array(basis)
+    if field.shape != grid.shape:
+        raise ValueError("field must match the modal grid")
+    gram = mode_gram(grid, basis, material_weight)
+    if np.linalg.matrix_rank(gram) < len(basis):
+        raise ValueError("modal basis is linearly dependent")
+    weights = dual_weights(grid) * np.broadcast_to(material_weight, grid.shape)
+    load = np.einsum("iyx,yx,yx->i", basis.conj(), field, weights)
+    coefficients = np.linalg.solve(gram, load)
+    recovered = np.einsum("i,iyx->yx", coefficients, basis)
+    return coefficients, recovered

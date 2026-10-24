@@ -66,3 +66,18 @@ def test_waveguide_velocity_product_does_not_imply_superluminal_information():
     phase, group = m.guide_velocities(15e9, 10e9)
     assert phase > C0 and group < C0
     assert phase * group == pytest.approx(C0**2)
+
+
+def test_modal_projection_recovers_complex_amplitudes_without_assuming_unit_norm():
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((0, 1), (0, 1), 17, 17)
+    x, y = grid.mesh()
+    first = np.sin(np.pi * x) * np.sin(np.pi * y)
+    second = np.sin(2 * np.pi * x) * np.sin(np.pi * y) + 0.2 * first
+    basis = np.stack([first, second])
+    expected = np.array([2 + 1j, -0.4 + 0.2j])
+    field = np.einsum("i,iyx->yx", expected, basis)
+    measured, recovered = m.project(grid, field, basis)
+    assert np.allclose(measured, expected)
+    assert np.allclose(recovered, field)
