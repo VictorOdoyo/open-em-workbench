@@ -59,3 +59,12 @@ def drude(frequency_hz, epsilon_infinity, plasma_hz, damping_hz):
     if np.any(f <= 0) or min(epsilon_infinity, plasma_hz, damping_hz) <= 0:
         raise ValueError("positive passive Drude parameters and frequency required")
     return epsilon_infinity - plasma_hz**2 / (f**2 - 1j * damping_hz * f)
+
+
+def loss_conductivity(frequency_hz, epsilon_r, loss_tangent):
+    from .core import EPS0, finite_array
+
+    f = finite_array(frequency_hz, real=True)
+    if np.any(f <= 0) or epsilon_r <= 0 or loss_tangent < 0:
+        raise ValueError("positive frequency/permittivity and nonnegative loss tangent required")
+    return 2 * np.pi * f * EPS0 * epsilon_r * loss_tangent

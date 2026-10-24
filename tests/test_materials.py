@@ -45,3 +45,9 @@ def test_drude_is_metallic_below_plasma_and_passive():
     assert np.all(eps.imag < 0)
     gamma, _ = m.propagation(0.1e12, eps[0])
     assert gamma.real > 0
+
+
+def test_loss_tangent_equivalent_conductivity_is_frequency_specific():
+    sigma = m.loss_conductivity(2e9, 4, 0.02)
+    eps = m.permittivity(2e9, 4, sigma)
+    assert -eps.imag / eps.real == pytest.approx(0.02)
