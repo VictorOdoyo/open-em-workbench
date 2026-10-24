@@ -39,3 +39,11 @@ def test_terminal_energy_is_gauge_invariant_and_rejects_active_capacitance():
     assert energy == pytest.approx(0.5 * 2e-11 * 9)
     with pytest.raises(ValueError, match="passive"):
         m.terminal_response(-matrix, [0, 3])
+
+
+def test_floating_plate_reproduces_series_capacitor_voltage_division():
+    matrix = 1e-12 * np.array([[2, -2, 0], [-2, 5, -3], [0, -3, 3]])
+    voltages, charges = m.floating_voltages(matrix, [0, 2], [0, 10])
+    assert voltages[1] == pytest.approx(6)
+    assert charges[1] == pytest.approx(0, abs=1e-26)
+    assert charges[2] == pytest.approx(12e-12)

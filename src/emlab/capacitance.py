@@ -60,3 +60,35 @@ def terminal_response(matrix, voltages):
         raise ValueError("passive positive-semidefinite capacitance matrix required")
     charge = matrix @ voltage
     return charge, float(0.5 * voltage @ charge)
+
+
+def floating_voltages(matrix, driven_indices, driven_voltages, charges=0):
+    from .core import finite_array
+
+    matrix = finite_array(matrix, real=True, ndim=2)
+    if matrix.shape[0] != matrix.shape[1]:
+        raise ValueError("square capacitance matrix required")
+    count = len(matrix)
+    mvoltage = np.zeros(count)
+    terminal_response(matrix, mvoltage)
+    driven = np.asarray(driven_indices)
+    values = finite_array(driven_voltages, real=True, ndim=1)
+    if (
+        driven.dtype.kind not in "iu"
+        or driven.shape != values.shape
+        or driven.size == 0
+        or len(np.unique(driven)) != driven.size
+        or np.any((driven < 0) | (driven >= count))
+    ):
+        raise ValueError("unique valid driven terminal indices and matching voltages required")
+    specified = np.broadcast_to(finite_array(charges, real=True), (count,))
+    floating = np.setdiff1d(np.arange(count), driven)
+    mvoltage[driven] = values
+    if len(floating):
+        block = matrix[np.ix_(floating, floating)]
+        if np.linalg.matrix_rank(block) < len(floating):
+            raise ValueError("floating conductor system lacks a voltage reference")
+        mvoltage[floating] = np.linalg.solve(
+            block, specified[floating] - matrix[np.ix_(floating, driven)] @ values
+        )
+    return mvoltage, matrix @ mvoltage
