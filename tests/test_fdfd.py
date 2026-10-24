@@ -74,3 +74,16 @@ def test_oblique_grid_plane_wave_satisfies_interior_helmholtz_equation():
     model = m.operator(grid, 1e9, pml_cells=0)
     residual = (model["matrix"] @ incident.ravel()).reshape(grid.shape)
     assert np.max(abs(residual[1:-1, 1:-1])) < 1e-12
+
+
+def test_frequency_domain_magnetic_field_has_forward_poynting_orientation():
+    from emlab.core import ETA0
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((-0.1, 0.1), (-0.1, 0.1), 41, 31)
+    electric, wavevector = m.plane_wave(grid, 1e9)
+    hx, hy = m.magnetic_fields(grid, 1e9, electric, pml_cells=0)
+    midpoint_x = (grid.x[:-1] + grid.x[1:]) / 2
+    expected = -np.exp(-1j * wavevector[0] * midpoint_x) / ETA0
+    assert np.max(abs(hx)) < 1e-15
+    assert np.allclose(hy[15], expected, atol=1e-14)

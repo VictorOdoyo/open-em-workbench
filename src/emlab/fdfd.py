@@ -104,3 +104,18 @@ def plane_wave(grid, frequency_hz, epsilon_background=1.0, angle_radians=0.0):
     wavevector = magnitude * direction
     x, y = grid.mesh()
     return np.exp(-1j * (wavevector[0] * x + wavevector[1] * y)), wavevector
+
+
+def magnetic_fields(grid, frequency_hz, electric, pml_cells=12):
+    from .core import MU0, finite_array
+    from .operators import gradient_faces
+
+    electric = finite_array(electric)
+    if electric.shape != grid.shape:
+        raise ValueError("electric phasor must match the grid")
+    stretch = coordinate_stretch(grid, frequency_hz, pml_cells)
+    dx, dy = gradient_faces(grid, electric)
+    omega_mu = 2 * np.pi * frequency_hz * MU0
+    hx = 1j * dy / (omega_mu * stretch["yh"][:, None])
+    hy = -1j * dx / (omega_mu * stretch["xh"][None, :])
+    return hx, hy
