@@ -103,3 +103,17 @@ def transform(matrix, voltage_transform):
         raise ValueError("physical terminal count must match transform rows")
     terminal_response(matrix, np.zeros(len(matrix)))
     return transform.T @ matrix @ transform
+
+
+def coenergy_force(capacitance_minus, capacitance_plus, voltages, displacement_step_m):
+    from .core import finite_array
+
+    if displacement_step_m <= 0 or not np.isfinite(displacement_step_m):
+        raise ValueError("positive central-difference displacement step required")
+    before = finite_array(capacitance_minus, real=True, ndim=2)
+    after = finite_array(capacitance_plus, real=True, ndim=2)
+    if before.shape != after.shape:
+        raise ValueError("matching capacitance matrices required")
+    _, low = terminal_response(before, voltages)
+    _, high = terminal_response(after, voltages)
+    return (high - low) / (2 * displacement_step_m)

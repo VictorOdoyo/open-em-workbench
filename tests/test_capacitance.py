@@ -58,3 +58,14 @@ def test_common_differential_transform_preserves_quadratic_field_energy():
         m.terminal_response(modal, voltage)[1]
     )
     assert abs(modal[0, 1]) < 1e-25
+
+
+def test_fixed_voltage_force_attracts_parallel_plates():
+    gap, step, voltage = 0.002, 1e-6, 5
+    minus = np.array([[m.parallel_plate(0.01, gap - step)]])
+    plus = np.array([[m.parallel_plate(0.01, gap + step)]])
+    force = m.coenergy_force(minus, plus, [voltage], step)
+    from emlab.core import EPS0
+
+    assert force < 0
+    assert force == pytest.approx(-0.5 * EPS0 * 0.01 * voltage**2 / gap**2, rel=1e-6)
