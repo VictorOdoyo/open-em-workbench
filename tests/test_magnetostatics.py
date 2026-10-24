@@ -25,3 +25,11 @@ def test_polygon_loop_orientation_and_axis_field_converge_to_circular_reference(
     assert field[2] == pytest.approx(exact, rel=1e-4)
     assert np.max(abs(field[:2])) < 1e-18
     assert np.allclose(m.polyline_field([0, 0, height], loop[::-1], current), -field)
+
+
+def test_loop_center_and_far_axis_have_correct_limiting_scaling():
+    from emlab.core import MU0
+
+    radius = 0.1
+    assert m.loop_axis(radius, 0, 3) == pytest.approx(MU0 * 3 / (2 * radius))
+    assert m.loop_axis(radius, 10) / m.loop_axis(radius, 20) == pytest.approx(8, rel=2e-4)

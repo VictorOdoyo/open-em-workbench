@@ -51,3 +51,12 @@ def polyline_field(points_xyz, vertices_xyz, current_a=1.0):
     for start, end in pairwise(vertices):
         result += segment_field(points, start, end, current_a)
     return result
+
+
+def loop_axis(radius_m, axial_position_m, current_a=1.0):
+    from .core import MU0, finite_array
+
+    z = finite_array(axial_position_m, real=True)
+    if radius_m <= 0 or not np.isfinite(radius_m + current_a):
+        raise ValueError("positive finite loop radius and finite current required")
+    return MU0 * current_a * radius_m**2 / (2 * (radius_m**2 + z**2) ** 1.5)
