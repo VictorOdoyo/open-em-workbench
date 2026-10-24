@@ -147,3 +147,15 @@ def scattering_audit(scattering):
     singular = np.linalg.svd(s, compute_uv=False)
     reciprocity = np.linalg.norm(s - np.swapaxes(s, -1, -2), axis=(-2, -1))
     return {"passivity_margin": 1 - singular[..., 0] ** 2, "reciprocity_error": reciprocity}
+
+
+def group_delay(frequency_hz, transmission):
+    from .core import finite_array
+
+    frequency = finite_array(frequency_hz, real=True, ndim=1)
+    transmission = finite_array(transmission, ndim=1)
+    if len(frequency) < 3 or frequency.shape != transmission.shape or np.any(np.diff(frequency) <= 0):
+        raise ValueError("at least three ordered frequencies and matching transmission samples required")
+    if np.any(abs(transmission) < 1e-14):
+        raise ValueError("group delay is undefined near transmission zeros")
+    return -np.gradient(np.unwrap(np.angle(transmission)), 2 * np.pi * frequency, edge_order=2)

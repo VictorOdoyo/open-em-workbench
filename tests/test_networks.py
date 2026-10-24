@@ -70,3 +70,9 @@ def test_scattering_audit_detects_active_gain_and_nonreciprocity():
     audit = m.scattering_audit(active)
     assert audit["passivity_margin"] == pytest.approx(-3)
     assert audit["reciprocity_error"] > 0
+
+
+def test_group_delay_recovers_known_propagation_time():
+    frequency = np.linspace(1e8, 2e8, 101)
+    delay = 7e-9
+    assert np.allclose(m.group_delay(frequency, 0.7 * np.exp(-2j * np.pi * frequency * delay)), delay)
