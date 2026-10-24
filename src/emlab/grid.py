@@ -62,3 +62,9 @@ def boundary_mask(grid):
     mask[[0, -1], :] = True
     mask[:, [0, -1]] = True
     return mask
+
+
+def nearest_index(grid, x, y):
+    if not np.isfinite(x + y) or not grid.x[0] <= x <= grid.x[-1] or not grid.y[0] <= y <= grid.y[-1]:
+        raise ValueError("probe lies outside the computational domain")
+    return int(np.rint((y - grid.y0) / grid.dy)), int(np.rint((x - grid.x0) / grid.dx))

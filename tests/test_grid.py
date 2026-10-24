@@ -34,3 +34,10 @@ def test_boundary_mask_counts_corners_once():
     mask = m.boundary_mask(grid)
     assert mask.sum() == 2 * 8 + 2 * 6 - 4
     assert not mask[2, 3]
+
+
+def test_probe_mapping_rejects_outside_locations_instead_of_clamping():
+    grid = m.Grid2D(5, 7, 0.2, 0.1)
+    assert m.nearest_index(grid, 0.39, 0.29) == (3, 2)
+    with pytest.raises(ValueError):
+        m.nearest_index(grid, -0.1, 0)
