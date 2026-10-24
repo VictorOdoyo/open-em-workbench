@@ -124,3 +124,12 @@ def test_stationary_energy_sensitivity_matches_resolved_finite_difference():
         measured.append(m.energy(grid, field, changed))
     assert derivative[5, 6] == pytest.approx((measured[1] - measured[0]) / (2 * step), rel=1e-7)
     assert np.sum(derivative * epsilon) == pytest.approx(m.energy(grid, potential, epsilon))
+
+
+def test_maxwell_stress_has_tension_parallel_to_the_electric_field():
+    from emlab.core import EPS0
+
+    stress = m.maxwell_stress(2, 0, 3)
+    assert stress[0, 0] == pytest.approx(6 * EPS0)
+    assert stress[1, 1] == pytest.approx(-6 * EPS0)
+    assert stress[0, 1] == 0

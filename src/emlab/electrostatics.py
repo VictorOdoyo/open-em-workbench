@@ -138,3 +138,16 @@ def energy_sensitivity(grid, potential, epsilon_r):
     np.add.at(derivative, tails, factor * 2 * b * b / (a + b) ** 2)
     np.add.at(derivative, heads, factor * 2 * a * a / (a + b) ** 2)
     return derivative.reshape(grid.shape)
+
+
+def maxwell_stress(electric_x, electric_y, epsilon_r=1.0):
+    from .core import EPS0, finite_array
+
+    ex, ey = np.broadcast_arrays(finite_array(electric_x, real=True), finite_array(electric_y, real=True))
+    if not np.isscalar(epsilon_r) or not np.isfinite(epsilon_r) or epsilon_r <= 0:
+        raise ValueError("one positive dielectric constant for the homogeneous contour medium required")
+    result = np.empty((*ex.shape, 2, 2))
+    result[..., 0, 0] = 0.5 * EPS0 * epsilon_r * (ex**2 - ey**2)
+    result[..., 1, 1] = -result[..., 0, 0]
+    result[..., 0, 1] = result[..., 1, 0] = EPS0 * epsilon_r * ex * ey
+    return result
