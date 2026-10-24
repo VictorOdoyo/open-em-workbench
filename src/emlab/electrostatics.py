@@ -17,3 +17,20 @@ def solve(grid, epsilon_r=1, fixed=None, voltage=0, charge_density=0, method="di
     solution, residual, iterations = solve_linear(reduced, rhs, method)
     potential[free] = solution
     return {"potential": potential.reshape(grid.shape), "residual": residual, "iterations": iterations}
+
+
+def electric_field(grid, potential):
+    from .operators import gradient_faces
+
+    gx, gy = gradient_faces(grid, potential)
+    return -gx, -gy
+
+
+def nodal_field(grid, potential):
+    from .core import finite_array
+
+    potential = finite_array(potential, real=True)
+    if potential.shape != grid.shape:
+        raise ValueError("potential must match grid")
+    gy, gx = np.gradient(potential, grid.dy, grid.dx, edge_order=2)
+    return -gx, -gy
