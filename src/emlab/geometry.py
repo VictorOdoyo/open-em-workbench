@@ -13,3 +13,17 @@ def circle(grid, center, radius):
         raise ValueError("positive finite radius required")
     x, y = grid.mesh()
     return (x - center[0]) ** 2 + (y - center[1]) ** 2 <= radius**2
+
+
+def circle_distance(grid, center, radius):
+    if radius <= 0:
+        raise ValueError("positive radius required")
+    x, y = grid.mesh()
+    return np.hypot(x - center[0], y - center[1]) - radius
+
+
+def annulus(grid, center, inner_radius, outer_radius):
+    if not 0 < inner_radius < outer_radius:
+        raise ValueError("ordered positive annular radii required")
+    distance = circle_distance(grid, center, outer_radius) + outer_radius
+    return (distance >= inner_radius) & (distance <= outer_radius)
