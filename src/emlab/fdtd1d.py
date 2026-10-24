@@ -133,3 +133,16 @@ class Mur1D(Yee1D):
         self.e[0] = old[1] + q_left * (self.e[1] - old[0])
         self.e[-1] = old[2] + q_right * (self.e[-2] - old[3])
         return self.e
+
+
+def stored_energy(state, modified=False):
+    from .core import EPS0, MU0
+
+    electric = 0.5 * EPS0 * np.sum(state.epsilon * state.e**2) * state.dx
+    magnetic = 0.5 * MU0 * np.sum(state.mu * state.h**2) * state.dx
+    if modified:
+        if type(state) is not Yee1D or np.any(state.conductivity != 0):
+            raise ValueError("modified invariant applies only to nondispersive lossless PEC Yee1D")
+        future_h = state.h - state.ch * np.diff(state.e) / state.dx
+        magnetic = 0.5 * MU0 * np.sum(state.mu * state.h * future_h) * state.dx
+    return float(electric + magnetic)

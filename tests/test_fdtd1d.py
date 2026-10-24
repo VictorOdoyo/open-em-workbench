@@ -64,3 +64,15 @@ def test_unit_courant_mur_boundary_transmits_a_discrete_impulse_without_reflecti
     for _ in range(250):
         state.step()
     assert np.max(abs(state.e)) < 1e-12
+
+
+def test_lossless_pec_leapfrog_energy_is_conserved_at_machine_precision():
+    state = m.Yee1D(121, 0.001, courant=0.9)
+    state.e[:] = np.sin(np.pi * np.arange(121) / 120)
+    initial = m.stored_energy(state, modified=True)
+    energies = []
+    for _ in range(500):
+        state.step()
+        energies.append(m.stored_energy(state, modified=True))
+    assert np.max(abs(np.array(energies) - initial)) / initial < 1e-12
+    assert m.stored_energy(state) > 0
