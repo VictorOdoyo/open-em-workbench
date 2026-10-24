@@ -138,3 +138,68 @@ def dielectric_interface(scale=1, seed=42):
             "The exact series reference uses the same half-cell interface placement.",
         ],
     )
+
+
+def coupled_capacitors(scale=1, seed=42):
+    from .capacitance import extract, floating_voltages, terminal_response
+    from .electrostatics import energy
+    from .geometry import conductor_labels, rectangle
+    from .grid import Grid2D, from_bounds
+    from .results import image, make
+
+    grid = from_bounds((-0.02, 0.02), (-0.015, 0.015), 80 * scale + 1, 60 * scale + 1)
+    masks = [
+        rectangle(grid, (-0.008, -0.006), (-0.004, 0.004)),
+        rectangle(grid, (0.006, 0.008), (-0.004, 0.004)),
+    ]
+    labels = conductor_labels(grid, masks)
+    extracted = extract(grid, labels, 3)
+    matrix = extracted["matrix"]
+    voltage, charge = floating_voltages(matrix, [0, 1], [0, 1])
+    potential = np.einsum("i,iyx->yx", voltage, extracted["basis"])
+    _, terminal_energy = terminal_response(matrix, voltage)
+    field_energy = energy(grid, potential, 3)
+    matrix_plot = image("Maxwell capacitance matrix", "capacitance_pf_m", Grid2D(3, 3, 1, 1), "C (pF/m)")
+    matrix_plot["xlabel"], matrix_plot["ylabel"] = "Driven conductor index", "Observed conductor index"
+    rows = [{"observed": i, "driven": j, "capacitance_f_m": matrix[i, j]} for i in range(3) for j in range(3)]
+    return make(
+        "capacitance-coupling",
+        {
+            "domain_m": [0.04, 0.03],
+            "grid_nodes": [grid.nx, grid.ny],
+            "epsilon_r": 3,
+            "driven_voltage_v": [0, 1],
+            "floating_charge_c_m": 0,
+            "seed": seed,
+        },
+        {
+            "floating_voltage_v": voltage[2],
+            "floating_charge_c_m": charge[2],
+            "relative_reciprocity_defect": np.linalg.norm(matrix - matrix.T) / np.linalg.norm(matrix),
+            "field_energy_j_m": field_energy,
+            "terminal_energy_j_m": terminal_energy,
+        },
+        {
+            "capacitance_pf_m": matrix * 1e12,
+            "potential_v": potential,
+            "unit_excitation_v": extracted["basis"][1],
+            "conductor_labels": labels,
+        },
+        [
+            matrix_plot,
+            image(
+                "One driven strip; second strip electrically floating", "potential_v", grid, "Potential (V)"
+            ),
+            image("Reference unit excitation for terminal one", "unit_excitation_v", grid, "Potential (V)"),
+        ],
+        {
+            "capacitance": rows,
+            "terminals": [
+                {"terminal": i, "voltage_v": voltage[i], "charge_c_m": charge[i]} for i in range(3)
+            ],
+        },
+        [
+            "Two embedded rectangular strips inside a grounded box; translational invariance along z.",
+            "All capacitances and energies are per metre; the floating strip is solved from zero net charge.",
+        ],
+    )
