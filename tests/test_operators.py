@@ -58,3 +58,17 @@ def test_dirichlet_elimination_uses_boundary_load_without_row_replacement():
     assert reduced.toarray()[0, 0] == 2
     assert load[0] == 4 and np.array_equal(free, [1])
     assert np.array_equal(base, [1, 0, 3])
+
+
+def test_sparse_direct_and_cg_match_independent_dense_solution():
+    from scipy.sparse import diags
+
+    matrix = diags([-np.ones(9), 2 * np.ones(10), -np.ones(9)], [-1, 0, 1]).tocsr()
+    rhs = np.arange(1, 11, dtype=float)
+    expected = np.linalg.solve(matrix.toarray(), rhs)
+    for method in ("direct", "cg"):
+        solution, residual, _ = m.solve_linear(matrix, rhs, method)
+        assert np.allclose(solution, expected)
+        assert residual < 1e-9
+    with pytest.raises(RuntimeError):
+        m.solve_linear(matrix, rhs, "cg", max_iterations=1)

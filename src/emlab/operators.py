@@ -64,3 +64,48 @@ def eliminate_dirichlet(matrix, rhs, fixed, values=0):
     base[mask] = specified[mask]
     reduced = matrix[free][:, free].tocsr()
     return reduced, (rhs - matrix @ base)[free], free, base
+
+
+def solve_linear(matrix, rhs, method="direct", tolerance=1e-10, max_iterations=5000):
+    import warnings
+
+    from scipy.sparse import diags
+    from scipy.sparse.linalg import MatrixRankWarning, cg, spsolve
+
+    from .core import finite_array
+
+    rhs = finite_array(rhs, ndim=1)
+    if matrix.shape != (len(rhs), len(rhs)) or tolerance <= 0 or max_iterations < 1:
+        raise ValueError("square linear system and positive solver controls required")
+    if len(rhs) == 0:
+        return rhs.copy(), 0.0, 0
+    iterations = 0
+    if method == "direct":
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", MatrixRankWarning)
+            try:
+                solution = spsolve(matrix, rhs)
+            except MatrixRankWarning as error:
+                raise ValueError("singular field operator") from error
+    elif method == "cg":
+        diagonal = matrix.diagonal()
+        if np.any(diagonal <= 0) or np.iscomplexobj(matrix.data):
+            raise ValueError("real SPD operator required by this CG solver")
+
+        def count(_):
+            nonlocal iterations
+            iterations += 1
+
+        solution, status = cg(
+            matrix, rhs, M=diags(1 / diagonal), rtol=tolerance, atol=0, maxiter=max_iterations, callback=count
+        )
+        if status != 0:
+            raise RuntimeError("conjugate-gradient solver did not converge")
+    else:
+        raise ValueError("solver must be direct or cg")
+    solution = finite_array(solution)
+    scale = max(float(np.linalg.norm(rhs)), np.finfo(float).tiny)
+    residual = float(np.linalg.norm(matrix @ solution - rhs) / scale)
+    if residual > max(10 * tolerance, 1e-8):
+        raise RuntimeError("field solve failed residual verification")
+    return solution, residual, iterations
