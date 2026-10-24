@@ -87,3 +87,17 @@ def star(left, right):
     result[..., 1, 0] = b[..., 1, 0] * a[..., 1, 0] / denominator
     result[..., 1, 1] = b[..., 1, 1] + b[..., 1, 0] * a[..., 1, 1] * b[..., 0, 1] / denominator
     return result
+
+
+def renormalize(scattering, old_reference, new_reference):
+    from .core import finite_array
+
+    s = finite_array(scattering)
+    old = np.broadcast_to(finite_array(old_reference, real=True), (2,))
+    new = np.broadcast_to(finite_array(new_reference, real=True), (2,))
+    if s.shape[-2:] != (2, 2) or np.any(old <= 0) or np.any(new <= 0):
+        raise ValueError("two-port scattering and positive real reference impedances required")
+    ratio = np.sqrt(new / old)
+    p = np.diag((ratio + 1 / ratio) / 2)
+    q = np.diag((ratio - 1 / ratio) / 2)
+    return np.linalg.solve(p - s @ q, s @ p - q)

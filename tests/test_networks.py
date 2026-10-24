@@ -40,3 +40,10 @@ def test_redheffer_product_matches_chain_cascade_and_handles_extreme_attenuation
     result = m.star(attenuator, attenuator)
     assert np.all(np.isfinite(result))
     assert result[1, 0] == pytest.approx(1e-200, abs=0, rel=1e-12)
+
+
+def test_renormalization_matches_unequal_reference_chain_formula_even_for_ideal_through():
+    for matrix in (np.eye(2), m.series(25 + 4j)):
+        original = m.abcd_to_s(matrix, (50, 50))
+        result = m.renormalize(original, 50, (30, 100))
+        assert np.allclose(result, m.abcd_to_s(matrix, (30, 100)))
