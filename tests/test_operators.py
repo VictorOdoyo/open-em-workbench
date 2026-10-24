@@ -81,3 +81,15 @@ def test_face_gradient_recovers_affine_potential_exactly():
     x, y = grid.mesh()
     gx, gy = m.gradient_faces(grid, 3 * x - 2 * y + 1)
     assert np.allclose(gx, 3) and np.allclose(gy, -2)
+
+
+def test_discrete_divergence_satisfies_global_flux_cancellation():
+    from emlab.grid import Grid2D, dual_weights
+
+    grid = Grid2D(9, 7, 0.2, 0.1)
+    x = (grid.x[:-1] + grid.x[1:]) / 2
+    fx = np.broadcast_to(x, (grid.ny, grid.nx - 1))
+    fy = np.zeros((grid.ny - 1, grid.nx))
+    divergence = m.divergence_faces(grid, fx, fy)
+    assert np.allclose(divergence[1:-1, 1:-1], 1)
+    assert np.sum(divergence * dual_weights(grid)) == pytest.approx(0, abs=1e-14)

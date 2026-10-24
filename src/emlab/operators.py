@@ -118,3 +118,15 @@ def gradient_faces(grid, potential):
     if potential.shape != grid.shape:
         raise ValueError("nodal potential must match grid")
     return np.diff(potential, axis=1) / grid.dx, np.diff(potential, axis=0) / grid.dy
+
+
+def divergence_faces(grid, x_flux, y_flux):
+    from .core import finite_array
+    from .grid import dual_weights
+
+    x_flux, y_flux = finite_array(x_flux), finite_array(y_flux)
+    if x_flux.shape != (grid.ny, grid.nx - 1) or y_flux.shape != (grid.ny - 1, grid.nx):
+        raise ValueError("staggered face flux shapes required")
+    _, areas = edge_geometry(grid)
+    integrated = np.r_[x_flux.ravel(), y_flux.ravel()] * areas
+    return (-incidence(grid).T @ integrated).reshape(grid.shape) / dual_weights(grid)
