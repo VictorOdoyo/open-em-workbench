@@ -7,3 +7,11 @@ def test_broadband_yee_slab_agrees_with_independent_multilayer_complex_amplitude
     assert summary["reflection_complex_relative_l2"] < 0.03
     assert summary["transmission_complex_relative_l2"] < 0.03
     assert summary["maximum_absorption_error"] < 0.03
+
+
+def test_dispersive_time_domain_slab_is_passive_and_matches_causal_frequency_response():
+    summary = m.debye_slab()["summary"]
+    assert summary["reflection_complex_relative_l2"] < 0.03
+    assert summary["transmission_complex_relative_l2"] < 0.03
+    assert summary["maximum_absorption_error"] < 0.03
+    assert summary["minimum_measured_absorption"] > 0

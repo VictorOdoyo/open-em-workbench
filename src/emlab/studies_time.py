@@ -189,3 +189,47 @@ def slab(scale=1, seed=42):
     arrays, parameters = _pulse_capture(scale, device, baseline, start, stop)
     reference = stack(arrays["frequency_hz"], [4], [(stop - start) * spacing])
     return _slab_result("fdtd-slab", arrays, parameters, reference, {"slab_epsilon_r": 4}, seed)
+
+
+def debye_slab(scale=1, seed=42):
+    from .fdtd1d import CPML1D, Debye1D
+    from .layers import stack
+    from .materials import debye
+    from .timedomain import debye_permittivity
+
+    nodes, spacing, start, stop, pml = 600 * scale + 1, 0.001 / scale, 250 * scale, 350 * scale, 40 * scale
+    high, static = np.ones(nodes), np.ones(nodes)
+    high[start + 1 : stop], static[start + 1 : stop] = 2, 6
+    high[[start, stop]], static[[start, stop]] = 1.5, 3.5
+    tau = 0.12e-9
+    device = Debye1D(nodes, spacing, static, high, tau, pml_cells=pml)
+    baseline = CPML1D(nodes, spacing, pml_cells=pml)
+    arrays, parameters = _pulse_capture(scale, device, baseline, start, stop)
+    epsilon = debye(arrays["frequency_hz"], 6, 2, tau)
+    reference = stack(arrays["frequency_hz"], [epsilon], [(stop - start) * spacing])
+    discrete = debye_permittivity(arrays["frequency_hz"], 6, 2, tau, device.dt)
+    discrete_reference = stack(arrays["frequency_hz"], [discrete], [(stop - start) * spacing])
+    arrays.update(
+        {
+            "epsilon_continuum": epsilon,
+            "epsilon_discrete": discrete,
+            "discrete_reference_R": discrete_reference["R"],
+            "discrete_reference_T": discrete_reference["T"],
+        }
+    )
+    result = _slab_result(
+        "fdtd-debye",
+        arrays,
+        parameters,
+        reference,
+        {"epsilon_static": 6, "epsilon_infinity": 2, "relaxation_s": tau},
+        seed,
+    )
+    result["summary"]["maximum_discrete_continuum_material_difference"] = float(
+        np.max(abs(discrete - epsilon))
+    )
+    result["summary"]["minimum_measured_absorption"] = float(np.min(arrays["A"][arrays["valid"]]))
+    result["assumptions"].append(
+        "Debye polarization is evolved by an auxiliary differential equation, not a fitted constant loss."
+    )
+    return result
