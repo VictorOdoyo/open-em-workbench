@@ -93,3 +93,12 @@ def test_internal_flux_term_is_separate_from_external_thin_wire_inductance():
     assert uniform_current - external == pytest.approx(MU0 * 0.1 / 4)
     with pytest.raises(ValueError, match="thin wire"):
         m.loop_inductance(0.1, 0.02)
+
+
+def test_coupled_coil_energy_detects_impossible_mutual_coupling():
+    matrix = 1e-6 * np.array([[2, 0.8], [0.8, 1]])
+    flux, energy = m.coupled_energy(matrix, [2, -1])
+    assert np.allclose(flux, matrix @ [2, -1])
+    assert energy == pytest.approx(0.5 * np.array([2, -1]) @ matrix @ [2, -1])
+    with pytest.raises(ValueError):
+        m.coupled_energy(1e-6 * np.array([[1, 2], [2, 1]]), [1, 1])
