@@ -72,3 +72,14 @@ def cavity_modes(grid, epsilon_r=1.0, mu_r=1.0, polarization="tm", count=6):
         "fields": fields,
         "residuals": np.array(residuals),
     }
+
+
+def mode_gram(grid, fields, material_weight=1.0):
+    from .core import finite_array
+    from .grid import dual_weights
+
+    fields = finite_array(fields)
+    weight = dual_weights(grid) * np.broadcast_to(finite_array(material_weight, real=True), grid.shape)
+    if fields.ndim != 3 or fields.shape[1:] != grid.shape or np.any(weight <= 0):
+        raise ValueError("mode fields and positive material quadrature required")
+    return np.einsum("iyx,jyx,yx->ij", fields.conj(), fields, weight)

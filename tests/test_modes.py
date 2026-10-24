@@ -24,3 +24,18 @@ def test_generalized_cavity_modes_match_independent_rectangular_cutoffs():
         assert result["cutoff_hz"][0] == pytest.approx(expected, rel=0.002)
         assert np.max(result["residuals"]) < 1e-8
         assert np.all(np.diff(result["cutoff_hz"]) >= 0)
+
+
+def test_tm_mode_gram_and_mesh_order_are_independent_of_eigenvector_scaling():
+    from emlab.core import convergence_order
+    from emlab.grid import from_bounds
+
+    exact = m.rectangular_cutoff(0.02, 0.01, 1, 1, "tm", 3)
+    errors, spacing = [], []
+    for count in (13, 25, 49):
+        grid = from_bounds((0, 0.02), (0, 0.01), count, count)
+        result = m.cavity_modes(grid, 3, count=2)
+        assert np.allclose(m.mode_gram(grid, result["fields"], 3), np.eye(2), atol=1e-10)
+        errors.append(abs(result["cutoff_hz"][0] - exact))
+        spacing.append(grid.dx)
+    assert 1.95 < convergence_order(spacing, errors)[0] < 2.05
