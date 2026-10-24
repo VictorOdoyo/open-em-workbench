@@ -123,3 +123,20 @@ def test_local_debye_relaxation_conserves_displacement_and_dissipates_free_energ
     assert np.allclose(displacement, final, rtol=1e-12, atol=1e-25)
     assert np.max(np.diff(energies)) < 1e-25
     assert state.e[40] == pytest.approx(1 / 3, rel=1e-7)
+
+
+def test_recorded_fields_keep_half_step_timestamps_and_fixed_snapshot_indices():
+    from emlab.sources import gaussian
+
+    state = m.CPML1D(101, 0.001, pml_cells=12)
+
+    def current(time):
+        return m.sheet_current(state, 40, gaussian(time, 0.1e-9, 0.02e-9))
+
+    result = m.evolve(state, 73, current, (30, 70), snapshot_stride=20)
+    assert result["electric"].shape == (73, 2)
+    assert np.allclose(
+        result["electric_time_s"] - result["magnetic_time_s"], state.dt / 2, rtol=1e-12, atol=1e-25
+    )
+    assert np.array_equal(result["snapshot_steps"], [0, 20, 40, 60, 73])
+    assert np.array_equal(result["snapshots"][-1], result["final_e"])

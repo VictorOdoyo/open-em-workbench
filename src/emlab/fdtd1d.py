@@ -211,3 +211,40 @@ def debye_energy(state):
         state.polarization**2, 2 * strength, out=np.zeros_like(strength), where=strength > 0
     )
     return stored_energy(state) + float(np.sum(polarization_energy) * state.dx)
+
+
+def evolve(state, steps, current=None, probes=(), snapshot_stride=0):
+    if not isinstance(steps, int) or isinstance(steps, bool) or steps < 1:
+        raise ValueError("positive integer step count required")
+    probes = np.asarray(probes, dtype=int)
+    if probes.ndim != 1 or np.any((probes < 1) | (probes >= state.nodes - 1)):
+        raise ValueError("interior probe indices required")
+    if not isinstance(snapshot_stride, int) or snapshot_stride < 0:
+        raise ValueError("nonnegative integer snapshot stride required")
+    electric, magnetic = np.empty((steps, len(probes))), np.empty((steps, len(probes)))
+    times_e, times_h = np.empty(steps), np.empty(steps)
+    snapshots, indices = [], []
+    if snapshot_stride:
+        snapshots.append(state.e.copy())
+        indices.append(state.iteration)
+    for index in range(steps):
+        impressed = 0 if current is None else current((state.iteration + 0.5) * state.dt)
+        state.step(impressed)
+        if not np.all(np.isfinite(state.e)) or not np.all(np.isfinite(state.h)):
+            raise RuntimeError("nonfinite time-domain fields")
+        electric[index] = state.e[probes]
+        magnetic[index] = (state.h[probes - 1] + state.h[probes]) / 2
+        times_e[index], times_h[index] = state.electric_time_s, state.magnetic_time_s
+        if snapshot_stride and ((index + 1) % snapshot_stride == 0 or index == steps - 1):
+            snapshots.append(state.e.copy())
+            indices.append(state.iteration)
+    return {
+        "electric": electric,
+        "magnetic": magnetic,
+        "electric_time_s": times_e,
+        "magnetic_time_s": times_h,
+        "snapshots": np.asarray(snapshots).reshape(-1, state.nodes),
+        "snapshot_steps": np.asarray(indices, dtype=int),
+        "final_e": state.e.copy(),
+        "final_h": state.h.copy(),
+    }
