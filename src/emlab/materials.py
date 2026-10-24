@@ -68,3 +68,16 @@ def loss_conductivity(frequency_hz, epsilon_r, loss_tangent):
     if np.any(f <= 0) or epsilon_r <= 0 or loss_tangent < 0:
         raise ValueError("positive frequency/permittivity and nonnegative loss tangent required")
     return 2 * np.pi * f * EPS0 * epsilon_r * loss_tangent
+
+
+def skin_depth(frequency_hz, conductivity, mu_r=1):
+    from .core import MU0, finite_array
+
+    f = finite_array(frequency_hz, real=True)
+    if np.any(f <= 0) or conductivity <= 0 or mu_r <= 0:
+        raise ValueError("positive conductor parameters required")
+    return np.sqrt(1 / (np.pi * f * MU0 * mu_r * conductivity))
+
+
+def surface_impedance(frequency_hz, conductivity, mu_r=1):
+    return (1 + 1j) / (conductivity * skin_depth(frequency_hz, conductivity, mu_r))

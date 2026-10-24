@@ -51,3 +51,10 @@ def test_loss_tangent_equivalent_conductivity_is_frequency_specific():
     sigma = m.loss_conductivity(2e9, 4, 0.02)
     eps = m.permittivity(2e9, 4, sigma)
     assert -eps.imag / eps.real == pytest.approx(0.02)
+
+
+def test_copper_skin_depth_and_impedance_match_good_conductor_limit():
+    depth = m.skin_depth(1e6, 5.8e7)
+    assert 65e-6 < depth < 67e-6
+    _, exact = m.propagation(1e6, m.permittivity(1e6, 1, 5.8e7))
+    assert m.surface_impedance(1e6, 5.8e7) == pytest.approx(exact, rel=1e-8)
