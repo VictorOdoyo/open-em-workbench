@@ -199,3 +199,15 @@ class Debye1D(CPML1D):
             (high - coupling - loss) * old_e + (1 - decay) * old_p - self.dt * (derivative + current)
         ) / (high + coupling + loss)
         self.polarization[1:-1] = decay * old_p + coupling * (self.e[1:-1] + old_e)
+
+
+def debye_energy(state):
+    from .core import EPS0
+
+    if not isinstance(state, Debye1D):
+        raise ValueError("Debye state required")
+    strength = EPS0 * (state.static_epsilon - state.epsilon)
+    polarization_energy = np.divide(
+        state.polarization**2, 2 * strength, out=np.zeros_like(strength), where=strength > 0
+    )
+    return stored_energy(state) + float(np.sum(polarization_energy) * state.dx)

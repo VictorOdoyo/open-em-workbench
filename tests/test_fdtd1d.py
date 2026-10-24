@@ -107,3 +107,19 @@ def test_zero_debye_strength_reduces_to_nondispersive_cpml_solver():
         second.step()
     assert np.allclose(first.e, second.e, atol=1e-14, rtol=1e-11)
     assert np.allclose(first.h, second.h, atol=1e-16, rtol=1e-11)
+
+
+def test_local_debye_relaxation_conserves_displacement_and_dissipates_free_energy():
+    from emlab.core import EPS0
+
+    state = m.Debye1D(81, 0.001, 6, 2, 1e-11, pml_cells=8)
+    state.e[1:-1] = 1
+    displacement = EPS0 * state.epsilon * state.e + state.polarization
+    energies = [m.debye_energy(state)]
+    for _ in range(100):
+        state._update_electric(np.zeros(79), np.zeros(79))
+        energies.append(m.debye_energy(state))
+    final = EPS0 * state.epsilon * state.e + state.polarization
+    assert np.allclose(displacement, final, rtol=1e-12, atol=1e-25)
+    assert np.max(np.diff(energies)) < 1e-25
+    assert state.e[40] == pytest.approx(1 / 3, rel=1e-7)
