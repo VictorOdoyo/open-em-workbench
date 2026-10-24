@@ -30,3 +30,24 @@ def test_request_json_roundtrip(tmp_path):
     config = load_config(path)
     assert ExperimentConfig.from_dict(config.to_dict()) == config
     assert len(CASES) == 24
+
+
+def test_dispatch_uses_physical_runner_and_preserves_request():
+    from emlab.experiments import run
+    from emlab.reporting import digest
+
+    config = ExperimentConfig("multilayer-coating", 1, 17)
+    events = []
+    result = run(config, events.append)
+    assert result["name"] == config.case
+    assert result["parameters"]["seed"] == 17
+    assert result["provenance"]["configuration_sha256"] == digest(config.to_dict())
+    assert len(events) == 1
+    assert "parameters_sha256" in result["provenance"]
+
+
+def test_all_catalog_runners_exist_without_running_heavy_simulations():
+    from importlib import import_module
+
+    for module, function, _ in CASES.values():
+        assert callable(getattr(import_module("emlab." + module), function))

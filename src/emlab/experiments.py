@@ -86,3 +86,25 @@ class ExperimentConfig:
 
 def load_config(path):
     return ExperimentConfig.from_dict(json.loads(Path(path).read_text(encoding="utf-8")))
+
+
+def run(config, progress=None):
+    from importlib import import_module
+
+    from .reporting import provenance, stamp
+    from .results import validate
+
+    if not isinstance(config, ExperimentConfig):
+        raise ValueError("validated ExperimentConfig required")
+    configuration = config.to_dict()
+    source = provenance(configuration)
+    module, function, _ = CASES[config.case]
+    if progress is not None:
+        progress("Solving " + config.case)
+    result = getattr(import_module("emlab." + module), function)(
+        scale=config.resolution_scale, seed=config.seed
+    )
+    validate(result)
+    if result["name"] != config.case:
+        raise ValueError("study returned a different case name")
+    return stamp(result, configuration, source)
