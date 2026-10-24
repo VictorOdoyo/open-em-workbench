@@ -136,3 +136,29 @@ def project(grid, field, basis, material_weight=1.0):
     coefficients = np.linalg.solve(gram, load)
     recovered = np.einsum("i,iyx->yx", coefficients, basis)
     return coefficients, recovered
+
+
+def subspace_overlap(grid, first, second, material_weight=1.0):
+    from .core import finite_array
+    from .grid import dual_weights
+
+    first, second = finite_array(first), finite_array(second)
+    weights = dual_weights(grid) * np.broadcast_to(finite_array(material_weight, real=True), grid.shape)
+    if (
+        first.ndim != 3
+        or second.ndim != 3
+        or first.shape[1:] != grid.shape
+        or second.shape[1:] != grid.shape
+        or np.any(weights <= 0)
+    ):
+        raise ValueError("two modal groups on the same positively weighted grid required")
+    root = np.sqrt(weights.ravel())
+    columns_a, columns_b = (
+        first.reshape(len(first), -1).T * root[:, None],
+        second.reshape(len(second), -1).T * root[:, None],
+    )
+    if np.linalg.matrix_rank(columns_a) < len(first) or np.linalg.matrix_rank(columns_b) < len(second):
+        raise ValueError("independent modes required in each subspace")
+    qa, _ = np.linalg.qr(columns_a)
+    qb, _ = np.linalg.qr(columns_b)
+    return np.clip(np.linalg.svd(qa.conj().T @ qb, compute_uv=False), 0, 1)

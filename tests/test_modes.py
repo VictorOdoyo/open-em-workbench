@@ -81,3 +81,14 @@ def test_modal_projection_recovers_complex_amplitudes_without_assuming_unit_norm
     measured, recovered = m.project(grid, field, basis)
     assert np.allclose(measured, expected)
     assert np.allclose(recovered, field)
+
+
+def test_degenerate_subspace_metric_is_invariant_to_unitary_mode_mixing():
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((0, 1), (0, 1), 17, 17)
+    x, y = grid.mesh()
+    first = np.stack([np.sin(np.pi * x) * np.sin(2 * np.pi * y), np.sin(2 * np.pi * x) * np.sin(np.pi * y)])
+    rotation = np.array([[1, 1j], [1j, 1]]) / np.sqrt(2)
+    second = np.einsum("ij,jyx->iyx", rotation, first)
+    assert np.allclose(m.subspace_overlap(grid, first, second), 1)
