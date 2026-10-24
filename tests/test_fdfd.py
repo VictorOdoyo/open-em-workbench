@@ -50,3 +50,17 @@ def test_current_driven_helmholtz_matches_manufactured_cavity_solution():
     result = m.solve(grid, frequency, current, pml_cells=0)
     assert np.max(abs(result["electric"] - field)) < 1e-12
     assert result["residual"] < 1e-12
+
+
+def test_open_domain_current_field_matches_outgoing_hankel_green_function():
+    from emlab.core import MU0, relative_error
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((-0.2, 0.2), (-0.2, 0.2), 101, 101)
+    current = np.zeros(grid.shape)
+    current[50, 50] = 0.001 / (grid.dx * grid.dy)
+    field = m.solve(grid, 1e9, current, pml_cells=14)["electric"]
+    locations = np.array([60, 65, 70, 75, 80])
+    radius = grid.x[locations]
+    expected = -2j * np.pi * 1e9 * MU0 * 0.001 * m.green_2d(1e9, radius)
+    assert relative_error(expected, field[50, locations]) < 0.015

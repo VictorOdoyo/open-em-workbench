@@ -70,3 +70,14 @@ def solve(grid, frequency_hz, current_density, epsilon_r=1.0, pml_cells=12, pec_
     solution, residual, _ = solve_linear(reduced, rhs)
     field[free] = solution
     return {"electric": field.reshape(grid.shape), "residual": residual}
+
+
+def green_2d(frequency_hz, radius_m, epsilon_r=1.0):
+    from scipy.special import hankel2
+
+    from .core import C0, finite_array
+
+    radius = finite_array(radius_m, real=True)
+    if min(frequency_hz, epsilon_r) <= 0 or np.any(radius <= 0):
+        raise ValueError("positive frequency/material and nonsingular observation radius required")
+    return -0.25j * hankel2(0, 2 * np.pi * frequency_hz / C0 * np.sqrt(epsilon_r) * radius)
