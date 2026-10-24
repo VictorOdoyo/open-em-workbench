@@ -86,3 +86,24 @@ def manufactured_sine(grid, epsilon_r=1):
     potential = np.sin(np.pi * (x - grid.x0) / width) * np.sin(np.pi * (y - grid.y0) / height)
     density = EPS0 * epsilon_r * np.pi**2 * (1 / width**2 + 1 / height**2) * potential
     return potential, density
+
+
+def work_balance(grid, potential, epsilon_r, fixed, charge_density=0):
+    from .core import finite_array
+    from .grid import dual_weights
+
+    potential = finite_array(potential, real=True)
+    fixed = np.asarray(fixed)
+    if fixed.shape != grid.shape or fixed.dtype != bool:
+        raise ValueError("boolean Dirichlet mask required")
+    density = np.broadcast_to(finite_array(charge_density, real=True), grid.shape)
+    reaction = charge_reaction(grid, potential, epsilon_r, density)
+    stored = energy(grid, potential, epsilon_r)
+    source_work = 0.5 * float(np.sum(density * dual_weights(grid) * potential))
+    boundary_work = 0.5 * float(np.sum(reaction[fixed] * potential[fixed]))
+    return {
+        "field_energy": stored,
+        "source_work": source_work,
+        "boundary_work": boundary_work,
+        "defect": stored - source_work - boundary_work,
+    }

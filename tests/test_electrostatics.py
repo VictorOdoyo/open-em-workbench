@@ -76,3 +76,13 @@ def test_manufactured_solution_converges_quadratically_under_mesh_refinement():
         spacings.append(grid.dx)
         errors.append(relative_error(exact, potential))
     assert 1.95 < convergence_order(spacings, errors)[0] < 2.05
+
+
+def test_discrete_energy_equals_source_plus_dirichlet_work():
+    from emlab.grid import boundary_mask, from_bounds
+
+    grid = from_bounds((0, 1), (0, 1), 19, 19)
+    exact, density = m.manufactured_sine(grid, 2)
+    potential = m.solve(grid, 2, voltage=exact + 1, charge_density=density)["potential"]
+    audit = m.work_balance(grid, potential, 2, boundary_mask(grid), density)
+    assert abs(audit["defect"]) < 1e-23
