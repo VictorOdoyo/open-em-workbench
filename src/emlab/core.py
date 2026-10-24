@@ -18,3 +18,14 @@ def frequency(wavelength_m, refractive_index=1):
     if np.any(~np.isfinite(length)) or np.any(length <= 0) or refractive_index <= 0:
         raise ValueError("positive finite wavelength and refractive index required")
     return C0 / (length * refractive_index)
+
+
+def finite_array(values, *, real=False, ndim=None):
+    array = np.asarray(values)
+    if array.dtype.kind not in "biufc" or not np.all(np.isfinite(array)):
+        raise ValueError("finite numeric array required")
+    if real and np.iscomplexobj(array) and np.any(array.imag != 0):
+        raise ValueError("real values required")
+    if ndim is not None and array.ndim != ndim:
+        raise ValueError("unexpected array rank")
+    return array.real.astype(float) if real else array
