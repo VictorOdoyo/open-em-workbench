@@ -37,3 +37,12 @@ def harmonic_edges(grid, values):
     x = 2 * field[:, :-1] * field[:, 1:] / (field[:, :-1] + field[:, 1:])
     y = 2 * field[:-1, :] * field[1:, :] / (field[:-1, :] + field[1:, :])
     return np.r_[x.ravel(), y.ravel()]
+
+
+def stiffness(grid, coefficient=1):
+    from scipy.sparse import diags
+
+    derivative = incidence(grid)
+    lengths, areas = edge_geometry(grid)
+    conductance = harmonic_edges(grid, coefficient) * areas / lengths
+    return (derivative.T @ diags(conductance) @ derivative).tocsr()

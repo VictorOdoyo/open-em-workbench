@@ -36,3 +36,15 @@ def test_interface_average_matches_two_series_half_cells():
     assert edges[1] == pytest.approx(8)
     with pytest.raises(ValueError):
         m.harmonic_edges(grid, 0)
+
+
+def test_stiffness_is_symmetric_positive_semidefinite_and_conservative():
+    from emlab.grid import Grid2D
+
+    grid = Grid2D(8, 6, 0.1, 0.2)
+    operator = m.stiffness(grid, 3)
+    assert np.allclose(operator.toarray(), operator.toarray().T)
+    assert np.max(abs(operator @ np.ones(48))) < 1e-14
+    rng = np.random.default_rng(4)
+    field = rng.normal(size=48)
+    assert field @ operator @ field > 0
