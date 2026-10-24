@@ -117,3 +117,24 @@ def displacement(grid, potential, epsilon_r=1):
     edges = harmonic_edges(grid, epsilon_r)
     split = ex.size
     return EPS0 * edges[:split].reshape(ex.shape) * ex, EPS0 * edges[split:].reshape(ey.shape) * ey
+
+
+def energy_sensitivity(grid, potential, epsilon_r):
+    from .core import EPS0, finite_array
+    from .operators import edge_geometry, incidence
+
+    epsilon = np.broadcast_to(finite_array(epsilon_r, real=True), grid.shape)
+    potential = finite_array(potential, real=True)
+    if potential.shape != grid.shape or np.any(epsilon <= 0):
+        raise ValueError("matching potential and positive dielectric map required")
+    nodes = np.arange(grid.nx * grid.ny).reshape(grid.shape)
+    tails = np.r_[nodes[:, :-1].ravel(), nodes[:-1].ravel()]
+    heads = np.r_[nodes[:, 1:].ravel(), nodes[1:].ravel()]
+    a, b = epsilon.ravel()[tails], epsilon.ravel()[heads]
+    lengths, areas = edge_geometry(grid)
+    difference = incidence(grid) @ potential.ravel()
+    factor = 0.5 * EPS0 * areas / lengths * difference**2
+    derivative = np.zeros(epsilon.size)
+    np.add.at(derivative, tails, factor * 2 * b * b / (a + b) ** 2)
+    np.add.at(derivative, heads, factor * 2 * a * a / (a + b) ** 2)
+    return derivative.reshape(grid.shape)

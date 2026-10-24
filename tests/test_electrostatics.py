@@ -105,3 +105,22 @@ def test_layered_dielectric_has_continuous_displacement_and_discontinuous_electr
     ex, _ = m.electric_field(grid, potential)
     eps_face = harmonic_edges(grid, epsilon)[: ex.size].reshape(ex.shape)
     assert np.allclose(ex * eps_face, ex[3, 0] * eps_face[3, 0])
+
+
+def test_stationary_energy_sensitivity_matches_resolved_finite_difference():
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((0, 1), (0, 1), 11, 11)
+    voltage = grid.mesh()[0]
+    epsilon = np.full(grid.shape, 3.0)
+    potential = m.solve(grid, epsilon, voltage=voltage)["potential"]
+    derivative = m.energy_sensitivity(grid, potential, epsilon)
+    step = 1e-4
+    measured = []
+    for sign in (-1, 1):
+        changed = epsilon.copy()
+        changed[5, 6] += sign * step
+        field = m.solve(grid, changed, voltage=voltage)["potential"]
+        measured.append(m.energy(grid, field, changed))
+    assert derivative[5, 6] == pytest.approx((measured[1] - measured[0]) / (2 * step), rel=1e-7)
+    assert np.sum(derivative * epsilon) == pytest.approx(m.energy(grid, potential, epsilon))
