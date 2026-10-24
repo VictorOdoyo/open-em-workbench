@@ -22,3 +22,10 @@ def test_cli_rejects_config_override_ambiguity(tmp_path):
     with pytest.raises(SystemExit) as error:
         main(["run", "--config", str(path), "--scale", "2", "--output", str(tmp_path)])
     assert error.value.code == 2
+
+
+def test_cli_data_batch_can_be_rendered_without_resolving(tmp_path):
+    assert main(["batch", "--cases", "multilayer-coating", "--data-only", "--output", str(tmp_path)]) == 0
+    assert not (tmp_path / "multilayer-coating" / "figure.png").exists()
+    assert main(["render", str(tmp_path)]) == 0
+    assert (tmp_path / "multilayer-coating" / "figure.png").exists()

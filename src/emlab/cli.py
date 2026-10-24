@@ -20,6 +20,14 @@ def parser():
     single.add_argument("--scale", type=int)
     single.add_argument("--seed", type=int)
     single.add_argument("--output", required=True, type=Path)
+    batch = commands.add_parser("batch", help="solve multiple studies")
+    batch.add_argument("--cases", nargs="+", choices=CASES, default=list(CASES))
+    batch.add_argument("--scale", type=int, default=1)
+    batch.add_argument("--seed", type=int, default=42)
+    batch.add_argument("--data-only", action="store_true")
+    batch.add_argument("--output", type=Path, required=True)
+    render = commands.add_parser("render", help="render a captured catalog without solving")
+    render.add_argument("directory", type=Path)
     return root
 
 
@@ -45,6 +53,15 @@ def main(argv=None):
             report = write_report(result, args.output)
             print(json.dumps(result["summary"], indent=2))
             print("Report: " + str(report.resolve()))
+        elif args.command == "batch":
+            from .batch import capture
+
+            configs = [ExperimentConfig(case, args.scale, args.seed) for case in args.cases]
+            print(capture(configs, args.output, args.data_only, print))
+        elif args.command == "render":
+            from .batch import render
+
+            print(f"Rendered {render(args.directory, print)} studies")
     except (ValueError, OSError, RuntimeError, KeyError) as error:
         root.error(str(error))
     return 0
