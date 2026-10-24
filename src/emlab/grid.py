@@ -47,3 +47,11 @@ def from_bounds(x_bounds, y_bounds, nx, ny):
         x_bounds[0],
         y_bounds[0],
     )
+
+
+def dual_weights(grid):
+    wx = np.full(grid.nx, grid.dx)
+    wy = np.full(grid.ny, grid.dy)
+    wx[[0, -1]] *= 0.5
+    wy[[0, -1]] *= 0.5
+    return wy[:, None] * wx[None, :]

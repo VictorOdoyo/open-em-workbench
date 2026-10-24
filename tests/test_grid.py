@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from emlab import grid as m
@@ -17,3 +18,12 @@ def test_bounds_constructor_preserves_both_physical_endpoints():
     grid = m.from_bounds((-1, 2), (0, 4), 13, 17)
     assert grid.x[-1] == pytest.approx(2)
     assert grid.y[-1] == pytest.approx(4)
+
+
+def test_dual_cell_weights_integrate_domain_and_linear_fields_exactly():
+    grid = m.from_bounds((0, 2), (-1, 2), 9, 7)
+    x, y = grid.mesh()
+    weights = m.dual_weights(grid)
+    assert weights.sum() == pytest.approx(6)
+    assert np.sum(weights * x) == pytest.approx(6)
+    assert np.sum(weights * y) == pytest.approx(3)
