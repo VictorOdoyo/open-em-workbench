@@ -19,3 +19,44 @@ def electric_coefficients(epsilon_r, conductivity_s_m, dt_s):
         raise ValueError("positive permittivity/timestep and nonnegative conductivity required")
     ratio = conductivity * dt_s / (2 * epsilon)
     return (1 - ratio) / (1 + ratio), dt_s / (epsilon * (1 + ratio))
+
+
+def pml_profile(
+    coordinates_m,
+    lower_m,
+    upper_m,
+    thickness_m,
+    target_reflection=1e-8,
+    order=3,
+    kappa_max=3.0,
+    alpha_max_s=0.0,
+):
+    from .core import C0, finite_array
+
+    coordinate = finite_array(coordinates_m, real=True)
+    if (
+        upper_m <= lower_m
+        or thickness_m < 0
+        or 2 * thickness_m >= upper_m - lower_m
+        or not 0 < target_reflection < 1
+        or order < 1
+        or kappa_max < 1
+        or alpha_max_s < 0
+    ):
+        raise ValueError("nonoverlapping passive PML geometry and profile parameters required")
+    if np.any((coordinate < lower_m) | (coordinate > upper_m)):
+        raise ValueError("PML coordinates lie outside its domain")
+    if thickness_m == 0:
+        return np.zeros_like(coordinate), np.ones_like(coordinate), np.zeros_like(coordinate)
+    depth = np.maximum(
+        np.maximum(
+            (lower_m + thickness_m - coordinate) / thickness_m,
+            (coordinate - upper_m + thickness_m) / thickness_m,
+        ),
+        0,
+    )
+    sigma_max = -(order + 1) * C0 * np.log(target_reflection) / (2 * thickness_m)
+    sigma = sigma_max * depth**order
+    kappa = 1 + (kappa_max - 1) * depth**order
+    alpha = np.where(depth > 0, alpha_max_s * (1 - depth), 0)
+    return sigma, kappa, alpha

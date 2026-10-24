@@ -21,3 +21,14 @@ def test_conductive_update_matches_trapezoidal_ohmic_decay():
     assert a == pytest.approx((3 * EPS0 - conductivity * dt / 2) / (3 * EPS0 + conductivity * dt / 2))
     assert b == pytest.approx(dt / (3 * EPS0 + conductivity * dt / 2))
     assert m.electric_coefficients(1, 0, dt)[0] == 1
+
+
+def test_pml_profile_is_symmetric_zero_interior_and_correctly_staggered():
+    coordinate = np.linspace(0, 1, 101)
+    sigma, kappa, alpha = m.pml_profile(coordinate, 0, 1, 0.1, alpha_max_s=1e8)
+    assert np.allclose(sigma, sigma[::-1])
+    assert np.all(sigma[11:90] == 0)
+    assert kappa[0] == 3 and kappa[50] == 1
+    assert alpha[0] == 0 and alpha[5] > 0
+    shifted = m.pml_profile((coordinate[:-1] + coordinate[1:]) / 2, 0, 1, 0.1)[0]
+    assert shifted[0] < sigma[0]
