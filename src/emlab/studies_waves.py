@@ -233,3 +233,109 @@ def absorbing_stack(scale=1, seed=42):
             "Independent Joule integration uses peak phasors and the factor one half.",
         ],
     )
+
+
+def microwave_lines(scale=1, seed=42):
+    from .core import C0, to_db
+    from .networks import abcd_to_s, group_delay, scattering_audit
+    from .results import curve, make
+    from .transmission import coax_losses, line_matrix, line_scattering, quarter_wave, rlgc
+
+    frequency = np.linspace(0.1e9, 3e9, 400 * scale + 1)
+    parameters = coax_losses(frequency, 0.001, 0.003, 2.25, loss_tangent=0.002)
+    gamma, impedance = rlgc(
+        frequency,
+        parameters["resistance_ohm_m"],
+        parameters["inductance_h_m"],
+        parameters["conductance_s_m"],
+        parameters["capacitance_f_m"],
+    )
+    scattering = line_scattering(gamma, impedance, 1.0, reference=50.0)
+    delay = group_delay(frequency, scattering[:, 1, 0])
+    matching = quarter_wave(50, 100, 1e9, C0)
+    transformer = abcd_to_s(
+        line_matrix(2j * np.pi * frequency / C0, matching["impedance_ohm"], matching["length_m"]), (50, 100)
+    )
+    at_design = abcd_to_s(
+        line_matrix(2j * np.pi * 1e9 / C0, matching["impedance_ohm"], matching["length_m"]), (50, 100)
+    )
+    rows = [
+        {
+            "frequency_hz": f,
+            "s21_db": db,
+            "group_delay_s": d,
+            "resistance_ohm_m": r,
+            "matching_reflectance": refl,
+        }
+        for f, db, d, r, refl in zip(
+            frequency,
+            to_db(scattering[:, 1, 0], field=True),
+            delay,
+            parameters["resistance_ohm_m"],
+            abs(transformer[:, 0, 0]) ** 2,
+            strict=True,
+        )
+    ]
+    return make(
+        "microwave-lines",
+        {
+            "coax_inner_m": 0.001,
+            "coax_outer_m": 0.003,
+            "epsilon_r": 2.25,
+            "length_m": 1.0,
+            "conductivity_s_m": 5.8e7,
+            "loss_tangent": 0.002,
+            "port_reference_ohm": 50,
+            "matching_center_hz": 1e9,
+            "matching_length_m": matching["length_m"],
+            "seed": seed,
+        },
+        {
+            "minimum_passivity_margin": np.min(scattering_audit(scattering)["passivity_margin"]),
+            "design_matching_reflectance": abs(at_design[0, 0]) ** 2,
+            "median_group_delay_s": np.median(delay),
+        },
+        {
+            "frequency_ghz": frequency / 1e9,
+            "s21_db": to_db(scattering[:, 1, 0], field=True),
+            "delay_ns": delay * 1e9,
+            "resistance": parameters["resistance_ohm_m"],
+            "matching_r": abs(transformer[:, 0, 0]) ** 2,
+            "s": scattering,
+        },
+        [
+            curve(
+                "One-metre coaxial transmission",
+                "frequency_ghz",
+                [("s21_db", "|S21|")],
+                "Frequency (GHz)",
+                "Transmission (dB)",
+            ),
+            curve(
+                "Transmission group delay",
+                "frequency_ghz",
+                [("delay_ns", "group delay")],
+                "Frequency (GHz)",
+                "Group delay (ns)",
+            ),
+            curve(
+                "Skin-effect series resistance",
+                "frequency_ghz",
+                [("resistance", "copper resistance")],
+                "Frequency (GHz)",
+                "Resistance (ohm/m)",
+            ),
+            curve(
+                "Separate 50-to-100 ohm quarter-wave transformer",
+                "frequency_ghz",
+                [("matching_r", "|S11|^2")],
+                "Frequency (GHz)",
+                "Power reflectance",
+            ),
+        ],
+        {"spectrum": rows},
+        [
+            "Coax loss uses the good-conductor skin approximation and frequency-specific dielectric conductance.",
+            "The matching transformer is a separate ideal line, not the same coaxial geometry.",
+        ],
+    )

@@ -21,3 +21,10 @@ def test_absorbing_stack_study_agrees_in_global_local_flux_and_joule_energy():
     assert 0 < summary["total_absorption"] < 1
     assert summary["total_absorption"] == pytest.approx(summary["layer_absorption_sum"], abs=1e-12)
     assert summary["maximum_joule_flux_defect"] < 2e-5
+
+
+def test_microwave_line_study_is_passive_and_matches_at_the_design_frequency():
+    summary = m.microwave_lines()["summary"]
+    assert summary["minimum_passivity_margin"] > -1e-12
+    assert summary["design_matching_reflectance"] < 1e-25
+    assert 4e-9 < summary["median_group_delay_s"] < 6e-9
