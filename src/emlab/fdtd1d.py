@@ -162,3 +162,15 @@ def gaussian_packet(state, center_m, width_m, amplitude_v_m=1.0):
     state.e[:] = amplitude_v_m * np.exp(-(((electric_x - center_m) / width_m) ** 2))
     state.h[:] = amplitude_v_m / eta * np.exp(-(((magnetic_x - center_m) / width_m) ** 2))
     state.e[[0, -1]] = 0
+
+
+def sheet_current(state, node, amplitude_a_m):
+    from .core import finite_array
+
+    amplitude = finite_array(amplitude_a_m, real=True)
+    margin = getattr(state, "pml_cells", 0) + 1
+    if not isinstance(node, int) or not margin <= node < state.nodes - margin or amplitude.ndim != 0:
+        raise ValueError("scalar sheet current at a node outside boundaries/PML required")
+    current = np.zeros(state.nodes)
+    current[node] = amplitude / state.dx
+    return current

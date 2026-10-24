@@ -87,3 +87,12 @@ def test_smooth_packet_moves_at_the_material_wave_speed():
         state.step()
     measured = np.argmax(state.e) * state.dx
     assert measured == pytest.approx(0.15 + C0 / 2 * 80 * state.dt, abs=0.0015)
+
+
+def test_sheet_current_integral_is_independent_of_grid_spacing():
+    for dx in (0.001, 0.0005):
+        state = m.Yee1D(101, dx)
+        source = m.sheet_current(state, 50, 0.3)
+        assert np.sum(source) * dx == pytest.approx(0.3)
+    with pytest.raises(ValueError):
+        m.sheet_current(m.CPML1D(101, 0.001, pml_cells=12), 5, 1)
