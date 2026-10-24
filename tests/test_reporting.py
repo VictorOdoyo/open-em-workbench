@@ -70,3 +70,16 @@ def test_field_archive_rejects_changed_array_or_metadata(tmp_path):
     np.savez_compressed(tmp_path / "metadata.npz", **copied)
     with pytest.raises(ValueError, match="metadata integrity"):
         m.load_archive(tmp_path / "metadata.npz")
+
+
+def test_exported_metadata_and_csv_have_canonical_lf_bytes_on_every_platform(tmp_path):
+    import csv
+    import json
+
+    m.export_data(_example(), tmp_path)
+    for path in tmp_path.iterdir():
+        assert b"\r\n" not in path.read_bytes()
+    with (tmp_path / "table_samples.csv").open(encoding="utf-8", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert float(rows[1]["error"]) == 0.02
+    assert json.loads((tmp_path / "parameters.json").read_text())["frequency_hz"] == 1e9

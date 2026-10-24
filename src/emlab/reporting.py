@@ -134,3 +134,46 @@ def load_archive(path):
     result = {**metadata, "arrays": arrays}
     _check_provenance(result)
     return validate(result)
+
+
+def write_json(path, value):
+    import json
+    from pathlib import Path
+
+    from .results import native
+
+    Path(path).write_text(
+        json.dumps(native(value), indent=2, sort_keys=True, allow_nan=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
+def export_data(result, directory):
+    import csv
+    from pathlib import Path
+
+    from .results import validate
+
+    validate(result)
+    if "provenance" not in result:
+        result = stamp(result, {"case": result["name"], "parameters": result["parameters"]})
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    for name, value in (
+        ("summary", result["summary"]),
+        ("parameters", result["parameters"]),
+        ("configuration", result["configuration"]),
+        ("provenance", result["provenance"]),
+    ):
+        write_json(directory / (name + ".json"), value)
+    tables = {"summary": [{"metric": key, "value": value} for key, value in result["summary"].items()]}
+    tables.update({"table_" + key: value for key, value in result["tables"].items() if value})
+    for name, rows in tables.items():
+        if not rows:
+            continue
+        with (directory / (name + ".csv")).open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(rows[0]), lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(rows)
+    return directory
