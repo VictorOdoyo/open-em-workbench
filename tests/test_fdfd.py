@@ -87,3 +87,23 @@ def test_frequency_domain_magnetic_field_has_forward_poynting_orientation():
     expected = -np.exp(-1j * wavevector[0] * midpoint_x) / ETA0
     assert np.max(abs(hx)) < 1e-15
     assert np.allclose(hy[15], expected, atol=1e-14)
+
+
+def test_empty_scattered_field_domain_has_no_artificial_plane_wave_source_residual():
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((-0.2, 0.2), (-0.2, 0.2), 51, 51)
+    result = m.scatter(grid, 1e9, pml_cells=8, angle_radians=0.4)
+    assert np.max(abs(result["scattered"])) == 0
+    assert np.allclose(result["total"], result["incident"])
+
+
+def test_pec_scattered_field_enforces_total_tangential_electric_boundary():
+    from emlab.geometry import circle
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((-0.2, 0.2), (-0.2, 0.2), 61, 61)
+    obstacle = circle(grid, (0, 0), 0.04)
+    result = m.scatter(grid, 1e9, pec_mask=obstacle, pml_cells=8)
+    assert np.max(abs(result["total"][obstacle])) < 1e-14
+    assert result["residual"] < 1e-10

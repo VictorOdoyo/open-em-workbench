@@ -119,3 +119,42 @@ def magnetic_fields(grid, frequency_hz, electric, pml_cells=12):
     hx = 1j * dy / (omega_mu * stretch["yh"][:, None])
     hy = -1j * dx / (omega_mu * stretch["xh"][None, :])
     return hx, hy
+
+
+def scatter(
+    grid, frequency_hz, epsilon_r=1.0, pec_mask=None, pml_cells=12, epsilon_background=1.0, angle_radians=0.0
+):
+    from .core import C0, finite_array
+    from .grid import boundary_mask
+    from .operators import eliminate_dirichlet, solve_linear
+
+    model = operator(grid, frequency_hz, epsilon_r, pml_cells)
+    epsilon = np.broadcast_to(finite_array(epsilon_r), grid.shape)
+    incident, wavevector = plane_wave(grid, frequency_hz, epsilon_background, angle_radians)
+    obstacle = np.zeros(grid.shape, bool) if pec_mask is None else np.asarray(pec_mask)
+    if obstacle.shape != grid.shape or obstacle.dtype != bool:
+        raise ValueError("boolean PEC geometry matching grid required")
+    margin = pml_cells + 1
+    allowed = np.zeros(grid.shape, bool)
+    allowed[margin:-margin, margin:-margin] = True
+    if np.any(obstacle & ~allowed) or np.any(abs(epsilon[~allowed] - epsilon_background) > 1e-12):
+        raise ValueError("all scattering contrast must lie outside the PML and exterior boundary")
+    fixed = boundary_mask(grid) | obstacle
+    boundary_value = np.where(obstacle, -incident, 0)
+    load = (
+        (2 * np.pi * frequency_hz / C0) ** 2
+        * (epsilon - epsilon_background)
+        * model["coordinate_volume"]
+        * incident
+    )
+    reduced, rhs, free, scattered = eliminate_dirichlet(model["matrix"], load.ravel(), fixed, boundary_value)
+    solution, residual, _ = solve_linear(reduced, rhs)
+    scattered[free] = solution
+    scattered = scattered.reshape(grid.shape)
+    return {
+        "incident": incident,
+        "scattered": scattered,
+        "total": incident + scattered,
+        "wavevector_m": wavevector,
+        "residual": residual,
+    }
