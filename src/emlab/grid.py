@@ -55,3 +55,10 @@ def dual_weights(grid):
     wx[[0, -1]] *= 0.5
     wy[[0, -1]] *= 0.5
     return wy[:, None] * wx[None, :]
+
+
+def boundary_mask(grid):
+    mask = np.zeros(grid.shape, bool)
+    mask[[0, -1], :] = True
+    mask[:, [0, -1]] = True
+    return mask

@@ -27,3 +27,10 @@ def test_dual_cell_weights_integrate_domain_and_linear_fields_exactly():
     assert weights.sum() == pytest.approx(6)
     assert np.sum(weights * x) == pytest.approx(6)
     assert np.sum(weights * y) == pytest.approx(3)
+
+
+def test_boundary_mask_counts_corners_once():
+    grid = m.Grid2D(8, 6, 1, 1)
+    mask = m.boundary_mask(grid)
+    assert mask.sum() == 2 * 8 + 2 * 6 - 4
+    assert not mask[2, 3]
