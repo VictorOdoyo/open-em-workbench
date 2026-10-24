@@ -20,3 +20,11 @@ def fourier_integral(samples, dt_s, frequencies_hz, time_offset_s=0.0, window=No
     kernel = np.exp(-2j * np.pi * frequency[:, None] * time) * dt_s
     weighted = samples * weights if samples.ndim == 1 else samples * weights[:, None]
     return kernel @ weighted
+
+
+def phasor(samples, dt_s, frequency_hz, time_offset_s=0.0, window=None):
+    samples = np.asarray(samples)
+    spectrum = fourier_integral(samples, dt_s, frequency_hz, time_offset_s, window)
+    weights = np.ones(len(samples)) if window is None else np.hanning(len(samples))
+    scale = 1 if np.iscomplexobj(samples) or frequency_hz == 0 else 2
+    return spectrum[0] * scale / (dt_s * weights.sum())
