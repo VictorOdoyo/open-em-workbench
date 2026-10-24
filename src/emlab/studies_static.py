@@ -203,3 +203,77 @@ def coupled_capacitors(scale=1, seed=42):
             "All capacitances and energies are per metre; the floating strip is solved from zero net charge.",
         ],
     )
+
+
+def coaxial_convergence(scale=1, seed=42):
+    from .capacitance import coaxial
+    from .electrostatics import conductor_charges, solve
+    from .grid import from_bounds
+    from .results import curve, image, make
+
+    reference = coaxial(0.01, 0.03, 2.25)
+    rows = []
+    for base in (41, 65, 97):
+        count = (base - 1) * scale + 1
+        grid = from_bounds((-0.03, 0.03), (-0.03, 0.03), count, count)
+        x, y = grid.mesh()
+        radius = np.hypot(x, y)
+        labels = np.full(grid.shape, -1, int)
+        labels[radius >= 0.03] = 0
+        labels[radius <= 0.01] = 1
+        potential = solve(grid, 2.25, labels >= 0, (labels == 1).astype(float))["potential"]
+        capacitance = conductor_charges(grid, labels, potential, 2.25)[1]
+        rows.append(
+            {
+                "nodes_per_axis": count,
+                "spacing_m": grid.dx,
+                "capacitance_f_m": capacitance,
+                "relative_error": abs(capacitance / reference - 1),
+            }
+        )
+    return make(
+        "coax-convergence",
+        {
+            "inner_radius_m": 0.01,
+            "outer_radius_m": 0.03,
+            "epsilon_r": 2.25,
+            "mesh_nodes": [r["nodes_per_axis"] for r in rows],
+            "seed": seed,
+        },
+        {
+            "analytic_capacitance_f_m": reference,
+            "finest_capacitance_f_m": rows[-1]["capacitance_f_m"],
+            "finest_relative_error": rows[-1]["relative_error"],
+        },
+        {
+            "spacing_m": [r["spacing_m"] for r in rows],
+            "error": [r["relative_error"] for r in rows],
+            "capacitance_pf_m": [r["capacitance_f_m"] * 1e12 for r in rows],
+            "reference_pf_m": np.full(len(rows), reference * 1e12),
+            "potential_v": potential,
+        },
+        [
+            curve(
+                "Curved boundary error is retained",
+                "spacing_m",
+                [("error", "relative error")],
+                "Grid spacing (m)",
+                "Capacitance relative error",
+                "log",
+                "log",
+            ),
+            curve(
+                "Numerical and continuum capacitance",
+                "spacing_m",
+                [("capacitance_pf_m", "staircase geometry"), ("reference_pf_m", "exact coax")],
+                "Grid spacing (m)",
+                "Capacitance (pF/m)",
+            ),
+            image("Finest solved coaxial potential", "potential_v", grid, "Potential (V)"),
+        ],
+        {"meshes": rows},
+        [
+            "Circular conductors are rasterized at nodes; no curved-boundary correction is claimed.",
+            "Refinement need not be monotonic when conductor coverage changes between meshes.",
+        ],
+    )

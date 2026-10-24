@@ -25,3 +25,10 @@ def test_coupled_capacitor_study_preserves_reciprocity_and_floating_charge():
     assert abs(summary["floating_charge_c_m"]) < 1e-24
     assert summary["relative_reciprocity_defect"] < 1e-11
     assert summary["field_energy_j_m"] == pytest.approx(summary["terminal_energy_j_m"], rel=1e-11)
+
+
+def test_coax_study_reports_real_staircase_error_without_forcing_second_order():
+    result = m.coaxial_convergence()
+    assert 0 < result["summary"]["finest_relative_error"] < 0.08
+    assert len(result["tables"]["meshes"]) == 3
+    assert result["summary"]["finest_capacitance_f_m"] > 0
