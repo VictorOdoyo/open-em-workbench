@@ -51,3 +51,10 @@ def test_coax_lc_product_recovers_material_wave_speed():
     parameters = m.coax_parameters(0.001, 0.003, 2.25)
     assert parameters["velocity_m_s"] == pytest.approx(C0 / 1.5)
     assert 40 < parameters["impedance_ohm"] < 45
+
+
+def test_coax_high_frequency_loss_scales_as_skin_depth_and_dielectric_frequency():
+    first = m.coax_losses(1e8, 0.001, 0.003, 2.25, loss_tangent=0.002)
+    second = m.coax_losses(4e8, 0.001, 0.003, 2.25, loss_tangent=0.002)
+    assert second["resistance_ohm_m"] / first["resistance_ohm_m"] == pytest.approx(2)
+    assert second["conductance_s_m"] / first["conductance_s_m"] == pytest.approx(4)

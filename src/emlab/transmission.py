@@ -108,3 +108,17 @@ def coax_parameters(inner_radius_m, outer_radius_m, epsilon_r=1, mu_r=1):
         "impedance_ohm": np.sqrt(inductance / capacitance),
         "velocity_m_s": 1 / np.sqrt(inductance * capacitance),
     }
+
+
+def coax_losses(
+    frequency_hz, inner_radius_m, outer_radius_m, epsilon_r=1, conductivity=5.8e7, loss_tangent=0, mu_r=1
+):
+    from .materials import surface_impedance
+
+    parameters = coax_parameters(inner_radius_m, outer_radius_m, epsilon_r, mu_r)
+    if loss_tangent < 0:
+        raise ValueError("nonnegative dielectric loss tangent required")
+    surface = surface_impedance(frequency_hz, conductivity)
+    resistance = surface.real / (2 * np.pi) * (1 / inner_radius_m + 1 / outer_radius_m)
+    conductance = 2 * np.pi * np.asarray(frequency_hz) * parameters["capacitance_f_m"] * loss_tangent
+    return {"resistance_ohm_m": resistance, "conductance_s_m": conductance, **parameters}
