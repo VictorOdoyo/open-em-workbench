@@ -109,3 +109,18 @@ def numerical_wavenumber(frequency_hz, spacing_m, dt_s, speed_m_s):
     if np.any(argument > 1) or np.any(f * dt_s > 0.5):
         raise ValueError("frequency exceeds the grid propagation band")
     return 2 * np.arcsin(argument) / spacing_m
+
+
+def debye_coefficients(epsilon_static, epsilon_infinity, relaxation_s, dt_s):
+    from .core import EPS0, finite_array
+
+    static, high, tau = np.broadcast_arrays(
+        finite_array(epsilon_static, real=True),
+        finite_array(epsilon_infinity, real=True),
+        finite_array(relaxation_s, real=True),
+    )
+    if dt_s <= 0 or np.any(high <= 0) or np.any(static < high) or np.any(tau <= 0):
+        raise ValueError("positive timestep/relaxation and passive Debye dielectric strengths required")
+    decay = (2 * tau - dt_s) / (2 * tau + dt_s)
+    coupling = EPS0 * (static - high) * dt_s / (2 * tau + dt_s)
+    return decay, coupling

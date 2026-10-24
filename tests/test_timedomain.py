@@ -62,3 +62,15 @@ def test_discrete_wavenumber_inverts_frequency_and_rejects_grid_stopband():
     assert np.allclose(f, recovered)
     with pytest.raises(ValueError):
         m.numerical_wavenumber(0.49 / dt, spacing, dt, C0)
+
+
+def test_debye_auxiliary_coefficients_reproduce_constant_field_relaxation():
+    from emlab.core import EPS0
+
+    tau, dt, electric = 1e-9, 1e-11, 2.0
+    decay, coupling = m.debye_coefficients(6, 2, tau, dt)
+    polarization = 0.0
+    for _ in range(100):
+        polarization = decay * polarization + 2 * coupling * electric
+    exact = EPS0 * 4 * electric * (1 - np.exp(-100 * dt / tau))
+    assert polarization == pytest.approx(exact, rel=1e-5)
