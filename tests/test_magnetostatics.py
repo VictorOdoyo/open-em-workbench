@@ -42,3 +42,23 @@ def test_off_axis_elliptic_field_matches_independent_polygon_filament_integratio
     from emlab.core import relative_error
 
     assert relative_error(exact, polygon) < 5e-5
+
+
+def test_vector_potential_curl_matches_biot_savart_field():
+    point = np.array([0.7, 0.4, 0.2])
+    start, end = [0, 0, -1], [0, 0, 1]
+    step = 1e-5
+    derivative = np.empty((3, 3))
+    for axis in range(3):
+        offset = np.eye(3)[axis] * step
+        derivative[:, axis] = (
+            m.segment_potential(point + offset, start, end) - m.segment_potential(point - offset, start, end)
+        ) / (2 * step)
+    curl = np.array(
+        [
+            derivative[2, 1] - derivative[1, 2],
+            derivative[0, 2] - derivative[2, 0],
+            derivative[1, 0] - derivative[0, 1],
+        ]
+    )
+    assert np.allclose(curl, m.segment_field(point, start, end), rtol=1e-8, atol=1e-18)

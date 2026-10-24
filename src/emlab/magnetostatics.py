@@ -93,3 +93,21 @@ def circular_field(points_xyz, radius_m, current_a=1.0):
     direction_x = np.divide(flat[:, 0], rho, out=np.zeros_like(rho), where=~axis)
     direction_y = np.divide(flat[:, 1], rho, out=np.zeros_like(rho), where=~axis)
     return np.column_stack((radial * direction_x, radial * direction_y, axial)).reshape(points.shape)
+
+
+def segment_potential(points_xyz, start_xyz, end_xyz, current_a=1.0):
+    from .core import MU0, finite_array
+
+    points = finite_array(points_xyz, real=True)
+    start, end = finite_array(start_xyz, real=True), finite_array(end_xyz, real=True)
+    if points.shape[-1] != 3 or start.shape != (3,) or end.shape != (3,):
+        raise ValueError("three-dimensional points and segment endpoints required")
+    wire = end - start
+    length = float(np.linalg.norm(wire))
+    if length == 0:
+        raise ValueError("nonzero filament length required")
+    distance = np.linalg.norm(points - start, axis=-1) + np.linalg.norm(points - end, axis=-1)
+    if np.any(distance <= length * (1 + 1e-14)):
+        raise ValueError("singular filament observation")
+    integral = np.log1p(2 * length / (distance - length))
+    return MU0 * current_a / (4 * np.pi) * integral[..., None] * wire / length
