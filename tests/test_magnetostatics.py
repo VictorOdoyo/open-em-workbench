@@ -62,3 +62,12 @@ def test_vector_potential_curl_matches_biot_savart_field():
         ]
     )
     assert np.allclose(curl, m.segment_field(point, start, end), rtol=1e-8, atol=1e-18)
+
+
+def test_neumann_mutual_inductance_obeys_reciprocity_and_winding_orientation():
+    first = m.circular_loop(0.1, 48)
+    second = m.circular_loop(0.08, 48, (0, 0, 0.05))
+    mutual = m.mutual_inductance(first, second)
+    assert mutual > 0
+    assert m.mutual_inductance(second, first) == pytest.approx(mutual, rel=1e-12)
+    assert m.mutual_inductance(first[::-1], second) == pytest.approx(-mutual, rel=1e-12)

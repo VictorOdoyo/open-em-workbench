@@ -111,3 +111,34 @@ def segment_potential(points_xyz, start_xyz, end_xyz, current_a=1.0):
         raise ValueError("singular filament observation")
     integral = np.log1p(2 * length / (distance - length))
     return MU0 * current_a / (4 * np.pi) * integral[..., None] * wire / length
+
+
+def mutual_inductance(first_vertices, second_vertices, quadrature_order=4):
+    from numpy.polynomial.legendre import leggauss
+
+    from .core import MU0, finite_array
+
+    def samples(vertices):
+        vertices = finite_array(vertices, real=True, ndim=2)
+        if (
+            vertices.shape[1] != 3
+            or len(vertices) < 4
+            or not np.allclose(vertices[0], vertices[-1], rtol=0, atol=1e-14)
+        ):
+            raise ValueError("closed three-dimensional polygon filaments required")
+        difference = np.diff(vertices, axis=0)
+        if np.any(np.linalg.norm(difference, axis=1) == 0):
+            raise ValueError("zero-length filament edge")
+        nodes, weights = leggauss(quadrature_order)
+        position = vertices[:-1, None, :] + (nodes[None, :, None] + 1) / 2 * difference[:, None, :]
+        differential = weights[None, :, None] / 2 * difference[:, None, :]
+        return position.reshape(-1, 3), differential.reshape(-1, 3)
+
+    if not isinstance(quadrature_order, int) or not 1 <= quadrature_order <= 16:
+        raise ValueError("quadrature order between one and sixteen required")
+    first, dl_first = samples(first_vertices)
+    second, dl_second = samples(second_vertices)
+    distance = np.linalg.norm(first[:, None, :] - second[None, :, :], axis=-1)
+    if np.any(distance < 1e-14):
+        raise ValueError("intersecting or coincident filaments require a finite-wire self model")
+    return float(MU0 / (4 * np.pi) * np.sum((dl_first @ dl_second.T) / distance))
