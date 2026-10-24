@@ -37,3 +37,11 @@ def test_debye_limits_and_relaxation_loss_peak():
 def test_lorentz_static_strength_and_resonance_sign():
     assert m.lorentz(0, 2, 3, 1e9, 1e8) == pytest.approx(5)
     assert m.lorentz(1e9, 2, 3, 1e9, 1e8) == pytest.approx(2 - 30j)
+
+
+def test_drude_is_metallic_below_plasma_and_passive():
+    eps = m.drude(np.array([0.1, 10]) * 1e12, 1, 1e12, 1e10)
+    assert eps[0].real < 0 and eps[1].real > 0
+    assert np.all(eps.imag < 0)
+    gamma, _ = m.propagation(0.1e12, eps[0])
+    assert gamma.real > 0

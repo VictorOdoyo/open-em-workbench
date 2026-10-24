@@ -50,3 +50,12 @@ def lorentz(frequency_hz, epsilon_infinity, strength, resonance_hz, damping_hz):
     if np.any(f < 0) or min(epsilon_infinity, resonance_hz, damping_hz) <= 0 or strength < 0:
         raise ValueError("passive Lorentz oscillator parameters required")
     return epsilon_infinity + strength * resonance_hz**2 / (resonance_hz**2 - f**2 + 1j * damping_hz * f)
+
+
+def drude(frequency_hz, epsilon_infinity, plasma_hz, damping_hz):
+    from .core import finite_array
+
+    f = finite_array(frequency_hz, real=True)
+    if np.any(f <= 0) or min(epsilon_infinity, plasma_hz, damping_hz) <= 0:
+        raise ValueError("positive passive Drude parameters and frequency required")
+    return epsilon_infinity - plasma_hz**2 / (f**2 - 1j * damping_hz * f)
