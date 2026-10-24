@@ -101,3 +101,20 @@ def test_spatial_magnetic_collocation_recovers_affine_fields_at_interior_nodes()
     hx, hy = m.magnetic_nodes(state)
     assert np.allclose(hx[1:-1, 1:-1], grid.mesh()[1][1:-1, 1:-1])
     assert np.allclose(hy[1:-1, 1:-1], grid.mesh()[0][1:-1, 1:-1])
+
+
+def test_two_dimensional_recording_has_deterministic_capture_times_and_probe_axes():
+    from emlab.grid import Grid2D
+    from emlab.sources import ricker
+
+    state = m.CPMLTMz(Grid2D(41, 35, 0.002, 0.002), pml_cells=6)
+
+    def current(time):
+        return m.line_current(state, (17, 20), 0.001 * ricker(time, 0.1e-9, 5e9))
+
+    result = m.evolve(state, 83, current, [(17, 15), (17, 25)], 20)
+    assert result["electric"].shape == (83, 2)
+    assert np.allclose(result["electric"][:, 0], result["electric"][:, 1], atol=1e-12)
+    assert np.array_equal(result["snapshot_steps"], [0, 20, 40, 60, 80, 83])
+    assert result["snapshots"].shape == (6, 35, 41)
+    assert np.all(np.isfinite(result["energy_j_m"]))

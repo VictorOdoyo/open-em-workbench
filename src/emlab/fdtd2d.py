@@ -191,3 +191,53 @@ def magnetic_nodes(state):
     hx[1:-1] = (state.hx[:-1] + state.hx[1:]) / 2
     hy[:, 1:-1] = (state.hy[:, :-1] + state.hy[:, 1:]) / 2
     return hx, hy
+
+
+def evolve(state, steps, current=None, probes=(), snapshot_stride=0):
+    if not isinstance(steps, int) or isinstance(steps, bool) or steps < 1:
+        raise ValueError("positive integer step count required")
+    locations = np.asarray(probes)
+    if locations.size == 0:
+        locations = np.empty((0, 2), dtype=int)
+    if locations.ndim != 2 or locations.shape[1] != 2 or locations.dtype.kind not in "iu":
+        raise ValueError("integer y-x probe pairs required")
+    if np.any((locations[:, 0] < 1) | (locations[:, 0] >= state.grid.ny - 1)) or np.any(
+        (locations[:, 1] < 1) | (locations[:, 1] >= state.grid.nx - 1)
+    ):
+        raise ValueError("probes must lie inside the domain")
+    if not isinstance(snapshot_stride, int) or snapshot_stride < 0:
+        raise ValueError("nonnegative integer snapshot stride required")
+    electric = np.empty((steps, len(locations)))
+    magnetic_x, magnetic_y = np.empty_like(electric), np.empty_like(electric)
+    times_e, times_h, energies = np.empty(steps), np.empty(steps), np.empty(steps)
+    snapshots, indices = [], []
+    if snapshot_stride:
+        snapshots.append(state.ez.copy())
+        indices.append(state.iteration)
+    for index in range(steps):
+        impressed = 0 if current is None else current((state.iteration + 0.5) * state.dt)
+        state.step(impressed)
+        if not all(np.all(np.isfinite(v)) for v in (state.ez, state.hx, state.hy)):
+            raise RuntimeError("nonfinite two-dimensional Maxwell fields")
+        hx, hy = magnetic_nodes(state)
+        iy, ix = locations[:, 0], locations[:, 1]
+        electric[index] = state.ez[iy, ix]
+        magnetic_x[index], magnetic_y[index] = hx[iy, ix], hy[iy, ix]
+        times_e[index], times_h[index] = state.iteration * state.dt, (state.iteration - 0.5) * state.dt
+        energies[index] = stored_energy(state)
+        if snapshot_stride and ((index + 1) % snapshot_stride == 0 or index == steps - 1):
+            snapshots.append(state.ez.copy())
+            indices.append(state.iteration)
+    return {
+        "electric": electric,
+        "magnetic_x": magnetic_x,
+        "magnetic_y": magnetic_y,
+        "electric_time_s": times_e,
+        "magnetic_time_s": times_h,
+        "energy_j_m": energies,
+        "snapshots": np.asarray(snapshots).reshape(-1, *state.grid.shape),
+        "snapshot_steps": np.asarray(indices, dtype=int),
+        "final_e": state.ez.copy(),
+        "final_hx": state.hx.copy(),
+        "final_hy": state.hy.copy(),
+    }
