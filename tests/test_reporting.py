@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from emlab import reporting as m
 
@@ -41,3 +42,31 @@ def test_archive_contains_numeric_fields_and_unicode_metadata_without_pickle(tmp
         assert all(archive[key].dtype.kind != "O" for key in archive.files)
         assert np.iscomplexobj(archive["field"])
         assert archive["__metadata__"].dtype.kind == "U"
+
+
+def test_field_archive_roundtrip_preserves_complex_values_and_source_revision(tmp_path):
+    result = _example()
+    config = {"case": "sample", "seed": 42}
+    source = {**m.provenance(config), "git_revision": "saved-source"}
+    result = m.stamp(result, config, source)
+    restored = m.load_archive(m.save_archive(result, tmp_path / "fields.npz"))
+    assert restored["provenance"] == result["provenance"]
+    assert np.array_equal(restored["arrays"]["field"], result["arrays"]["field"])
+
+
+def test_field_archive_rejects_changed_array_or_metadata(tmp_path):
+    import json
+
+    original = m.save_archive(_example(), tmp_path / "original.npz")
+    with np.load(original, allow_pickle=False) as archive:
+        copied = {key: archive[key].copy() for key in archive.files}
+    copied["y"][0] = 0.9
+    np.savez_compressed(tmp_path / "changed.npz", **copied)
+    with pytest.raises(ValueError, match="array integrity"):
+        m.load_archive(tmp_path / "changed.npz")
+    meta = json.loads(str(copied["__metadata__"]))
+    meta["summary"]["relative_error"] = 0.0
+    copied["__metadata__"] = np.array(json.dumps(meta))
+    np.savez_compressed(tmp_path / "metadata.npz", **copied)
+    with pytest.raises(ValueError, match="metadata integrity"):
+        m.load_archive(tmp_path / "metadata.npz")

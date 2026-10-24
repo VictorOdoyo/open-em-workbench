@@ -108,3 +108,29 @@ def save_archive(result, path):
         if temporary is not None and Path(temporary).exists():
             Path(temporary).unlink()
     return path
+
+
+def load_archive(path):
+    import json
+
+    from .results import validate
+
+    with np.load(path, allow_pickle=False) as archive:
+        if "__metadata__" not in archive.files:
+            raise ValueError("missing field archive metadata")
+        metadata = json.loads(str(archive["__metadata__"]))
+        expected = metadata.pop("metadata_sha256", None)
+        if expected != digest(metadata):
+            raise ValueError("field archive metadata integrity mismatch")
+        if metadata.pop("schema_version", None) != 1:
+            raise ValueError("unsupported field archive schema")
+        hashes = metadata.pop("array_sha256")
+        if set(archive.files) != {*hashes, "__metadata__"}:
+            raise ValueError("archive array inventory mismatch")
+        arrays = {key: archive[key].copy() for key in hashes}
+    for key, array in arrays.items():
+        if _array_hash(array) != hashes[key]:
+            raise ValueError("field archive array integrity mismatch: " + key)
+    result = {**metadata, "arrays": arrays}
+    _check_provenance(result)
+    return validate(result)
