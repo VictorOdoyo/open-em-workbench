@@ -216,7 +216,10 @@ def debye_energy(state):
 def evolve(state, steps, current=None, probes=(), snapshot_stride=0):
     if not isinstance(steps, int) or isinstance(steps, bool) or steps < 1:
         raise ValueError("positive integer step count required")
-    probes = np.asarray(probes, dtype=int)
+    probes = np.asarray(probes)
+    if probes.size and probes.dtype.kind not in "iu":
+        raise ValueError("integer probe indices required")
+    probes = probes.astype(int)
     if probes.ndim != 1 or np.any((probes < 1) | (probes >= state.nodes - 1)):
         raise ValueError("interior probe indices required")
     if not isinstance(snapshot_stride, int) or snapshot_stride < 0:

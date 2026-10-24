@@ -140,3 +140,8 @@ def test_recorded_fields_keep_half_step_timestamps_and_fixed_snapshot_indices():
     )
     assert np.array_equal(result["snapshot_steps"], [0, 20, 40, 60, 73])
     assert np.array_equal(result["snapshots"][-1], result["final_e"])
+
+
+def test_evolution_rejects_fractional_probe_positions():
+    with pytest.raises(ValueError, match="integer probe"):
+        m.evolve(m.Yee1D(51, 0.001), 2, probes=[2.5])
