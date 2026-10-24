@@ -100,3 +100,77 @@ def coil_mutual(scale=1, seed=42):
             "The map uses the analytic circular-loop field; convergence curves use independent polygon quadrature.",
         ],
     )
+
+
+def current_fields(scale=1, seed=42):
+    from .core import MU0
+    from .geometry import circle
+    from .grid import dual_weights, from_bounds, nearest_index
+    from .magnetostatics import solve_az
+    from .results import image, make
+
+    grid = from_bounds((-0.06, 0.06), (-0.04, 0.04), 80 * scale + 1, 60 * scale + 1)
+    positive = circle(grid, (-0.02, 0), 0.006)
+    negative = circle(grid, (0.02, 0), 0.006)
+    weights = dual_weights(grid)
+    current = positive.astype(float) / np.sum(weights[positive]) - negative.astype(float) / np.sum(
+        weights[negative]
+    )
+    result = solve_az(grid, current)
+    bx, by = result["bx_t"], result["by_t"]
+    y0, x0 = nearest_index(grid, -0.035, -0.015)
+    y1, x1 = nearest_index(grid, -0.005, 0.015)
+    circulation = (
+        np.trapezoid(bx[y0, x0 : x1 + 1], grid.x[x0 : x1 + 1])
+        + np.trapezoid(by[y0 : y1 + 1, x1], grid.y[y0 : y1 + 1])
+        - np.trapezoid(bx[y1, x0 : x1 + 1], grid.x[x0 : x1 + 1])
+        - np.trapezoid(by[y0 : y1 + 1, x0], grid.y[y0 : y1 + 1])
+    ) / MU0
+    source_work = 0.5 * np.sum(current * result["az_wb_m"] * weights)
+    return make(
+        "magnetostatic-current",
+        {
+            "domain_m": [0.12, 0.08],
+            "grid_nodes": [grid.nx, grid.ny],
+            "wire_radius_m": 0.006,
+            "current_centers_m": [[-0.02, 0], [0.02, 0]],
+            "currents_a": [1, -1],
+            "mu_r": 1,
+            "boundary_az_wb_m": 0,
+            "seed": seed,
+        },
+        {
+            "net_current_a": np.sum(current * weights),
+            "ampere_current_a": circulation,
+            "ampere_relative_error": abs(circulation - 1),
+            "field_energy_j_m": result["energy_j_m"],
+            "source_work_j_m": source_work,
+            "solver_residual": result["residual"],
+        },
+        {
+            "current_a_m2": current,
+            "az_uwb_m": result["az_wb_m"] * 1e6,
+            "b_ut": np.hypot(bx, by) * 1e6,
+            "bx_t": bx,
+            "by_t": by,
+        },
+        [
+            image("Current and return conductor", "current_a_m2", grid, "Jz (A/m^2)"),
+            image("Solved magnetic vector potential", "az_uwb_m", grid, "Az (microWb/m)"),
+            image("Recovered magnetic flux density", "b_ut", grid, "|B| (microtesla)"),
+        ],
+        {
+            "audit": [
+                {
+                    "field_energy_j_m": result["energy_j_m"],
+                    "source_work_j_m": source_work,
+                    "ampere_current_a": circulation,
+                    "net_current_a": np.sum(current * weights),
+                }
+            ]
+        },
+        [
+            "Two translationally invariant finite-area current distributions inside a finite Az=0 box.",
+            "Currents are normalized by rasterized area; the nodal Ampere contour has its own quadrature error.",
+        ],
+    )
