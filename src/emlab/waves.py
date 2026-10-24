@@ -65,3 +65,12 @@ def brewster_angle(index_left, index_right):
     if min(index_left, index_right) <= 0:
         raise ValueError("positive real refractive indices required")
     return float(np.arctan(index_right / index_left))
+
+
+def poynting(electric, magnetic):
+    from .core import finite_array
+
+    electric, magnetic = finite_array(electric), finite_array(magnetic)
+    if electric.shape != magnetic.shape or electric.shape[-1] != 3:
+        raise ValueError("matching three-component field vectors required")
+    return 0.5 * np.real(np.cross(electric, magnetic.conj()))

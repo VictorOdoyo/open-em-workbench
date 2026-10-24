@@ -38,3 +38,13 @@ def test_angle_references_distinguish_no_critical_angle_from_normal_incidence():
     assert m.critical_angle(1, 2) is None
     assert m.critical_angle(2, 1) == pytest.approx(np.pi / 6)
     assert m.brewster_angle(1, 2) == pytest.approx(np.arctan(2))
+
+
+def test_peak_phasor_poynting_uses_half_factor_and_magnetic_conjugate():
+    from emlab.core import ETA0
+
+    electric = np.array([0, 2 + 2j, 0])
+    magnetic = np.array([0, 0, (2 + 2j) / ETA0])
+    flux = m.poynting(electric, magnetic)
+    assert flux[0] == pytest.approx(4 / ETA0)
+    assert np.allclose(flux[1:], 0)
