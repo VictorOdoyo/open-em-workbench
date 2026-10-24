@@ -13,3 +13,15 @@ def test_finite_wire_field_matches_closed_form_and_right_hand_rule():
     assert np.allclose(field[1], 0)
     with pytest.raises(ValueError, match="singular"):
         m.segment_field([0, 0, 0], [0, 0, -1], [0, 0, 1])
+
+
+def test_polygon_loop_orientation_and_axis_field_converge_to_circular_reference():
+    from emlab.core import MU0
+
+    radius, height, current = 0.1, 0.05, 2.0
+    loop = m.circular_loop(radius, 256)
+    field = m.polyline_field([0, 0, height], loop, current)
+    exact = MU0 * current * radius**2 / (2 * (radius**2 + height**2) ** 1.5)
+    assert field[2] == pytest.approx(exact, rel=1e-4)
+    assert np.max(abs(field[:2])) < 1e-18
+    assert np.allclose(m.polyline_field([0, 0, height], loop[::-1], current), -field)
