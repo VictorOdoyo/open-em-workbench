@@ -50,3 +50,14 @@ def test_streaming_monitor_matches_offline_integral_with_staggered_origin():
     assert np.allclose(monitor.integral, expected, rtol=1e-12, atol=1e-25)
     with pytest.raises(ValueError, match="consecutive"):
         monitor.add(samples[-1], time[-1] + 3 * dt)
+
+
+def test_ringdown_pole_recovers_known_damped_mode_without_fft_bin_quantization():
+    dt = 1e-12
+    frequency, decay = 3.123e9, 2e7
+    time = np.arange(1200) * dt
+    values = 2 * np.exp(-decay * time) * np.cos(2 * np.pi * frequency * time + 0.3)
+    result = m.ringdown_pole(values, dt)
+    assert result["frequency_hz"] == pytest.approx(frequency, rel=1e-11)
+    assert result["quality_factor"] == pytest.approx(np.pi * frequency / decay, rel=1e-8)
+    assert result["fit_residual"] < 1e-12

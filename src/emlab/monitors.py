@@ -94,3 +94,28 @@ class FourierMonitor:
         self.integral += self.dt * weight * np.exp(-2j * np.pi * self.frequency[:, None] * time_s) * value
         self.last_time = time_s
         self.count += 1
+
+
+def ringdown_pole(samples, dt_s):
+    from .core import finite_array
+
+    values = finite_array(samples, real=True, ndim=1)
+    if len(values) < 8 or dt_s <= 0 or np.linalg.norm(values) == 0:
+        raise ValueError("at least eight nonzero ringdown samples and positive timestep required")
+    design = np.column_stack((values[1:-1], values[:-2]))
+    coefficients = np.linalg.lstsq(design, values[2:], rcond=None)[0]
+    poles = np.roots([1, -coefficients[0], -coefficients[1]])
+    candidates = poles[poles.imag > 1e-10]
+    if len(candidates) != 1 or abs(candidates[0]) > 1 + 1e-7:
+        raise ValueError("trace does not fit a passive isolated oscillatory mode")
+    pole = candidates[0]
+    omega = float(np.angle(pole) / dt_s)
+    decay = max(0.0, float(-np.log(abs(pole)) / dt_s))
+    quality = None if decay <= 1e-10 * omega else omega / (2 * decay)
+    residual = float(np.linalg.norm(design @ coefficients - values[2:]) / np.linalg.norm(values[2:]))
+    return {
+        "frequency_hz": omega / (2 * np.pi),
+        "decay_rate_s": decay,
+        "quality_factor": quality,
+        "fit_residual": residual,
+    }
