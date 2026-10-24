@@ -58,3 +58,11 @@ def test_te_tm_impedances_have_dual_cutoff_behavior():
     assert te * tm == pytest.approx(ETA0**2)
     assert m.guide_impedance(5e9, cutoff, "te").imag > 0
     assert m.guide_impedance(5e9, cutoff, "tm").imag < 0
+
+
+def test_waveguide_velocity_product_does_not_imply_superluminal_information():
+    from emlab.core import C0
+
+    phase, group = m.guide_velocities(15e9, 10e9)
+    assert phase > C0 and group < C0
+    assert phase * group == pytest.approx(C0**2)

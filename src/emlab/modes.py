@@ -107,3 +107,15 @@ def guide_impedance(frequency_hz, cutoff_hz, polarization="te", epsilon_r=1.0, m
     if polarization == "tm":
         return gamma / (1j * omega * EPS0 * epsilon_r)
     raise ValueError("polarization must be te or tm")
+
+
+def guide_velocities(frequency_hz, cutoff_hz, epsilon_r=1.0, mu_r=1.0):
+    from .core import C0, finite_array
+
+    frequency = finite_array(frequency_hz, real=True)
+    guide_propagation(frequency, cutoff_hz, epsilon_r, mu_r)
+    if np.any(frequency <= cutoff_hz):
+        raise ValueError("propagating frequencies strictly above cutoff required")
+    speed = C0 / np.sqrt(epsilon_r * mu_r)
+    factor = np.sqrt(1 - (cutoff_hz / frequency) ** 2)
+    return speed / factor, speed * factor
