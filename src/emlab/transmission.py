@@ -21,3 +21,20 @@ def rlgc(frequency_hz, resistance, inductance, conductance, capacitance):
     gamma = np.sqrt(series * shunt)
     impedance = np.sqrt(series / shunt)
     return gamma, impedance
+
+
+def line_matrix(gamma, characteristic_impedance, length_m):
+    from .core import finite_array
+
+    gamma, impedance = finite_array(gamma), finite_array(characteristic_impedance)
+    if length_m < 0 or not np.isfinite(length_m) or np.any(impedance.real <= 0) or np.any(gamma.real < 0):
+        raise ValueError("passive line parameters and nonnegative length required")
+    gamma, impedance = np.broadcast_arrays(gamma, impedance)
+    if np.any((gamma * length_m).real > 300):
+        raise ValueError("line too attenuating for chain matrices; use line_scattering")
+    phase = gamma * length_m
+    result = np.empty((*phase.shape, 2, 2), complex)
+    result[..., 0, 0] = result[..., 1, 1] = np.cosh(phase)
+    result[..., 0, 1] = impedance * np.sinh(phase)
+    result[..., 1, 0] = np.sinh(phase) / impedance
+    return result
