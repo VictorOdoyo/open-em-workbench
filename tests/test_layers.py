@@ -52,3 +52,13 @@ def test_internal_layer_fields_match_external_boundary_conditions():
     assert field["magnetic"][0] == pytest.approx((1 - result["r"]) / ETA0)
     assert field["electric"][-1] == pytest.approx(result["t"])
     assert field["magnetic"][-1] == pytest.approx(result["t"] / ETA0)
+
+
+def test_layer_resolved_absorption_sums_to_global_power_loss():
+    epsilons = [2 - 0.4j, 5 - 0.7j, 3]
+    thickness = [0.02, 0.03, 0.01]
+    result = m.stack(2e9, epsilons, thickness)
+    absorbed = m.absorption_by_layer(2e9, epsilons, thickness)
+    assert np.all(absorbed > -1e-13)
+    assert abs(absorbed[-1]) < 1e-13
+    assert absorbed.sum() == pytest.approx(result["A"], abs=1e-12)

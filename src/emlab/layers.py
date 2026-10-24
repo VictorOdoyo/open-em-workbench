@@ -137,3 +137,11 @@ def fields(frequency_hz, epsilon_layers, thickness_m, layer_index, positions_m, 
         "flux_w_m2": 0.5 * np.real(electric * magnetic.conj()),
         "incident_flux_w_m2": float(0.5 * system["admittance"][0].real),
     }
+
+
+def absorption_by_layer(frequency_hz, epsilon_layers, thickness_m, **options):
+    absorbed = []
+    for index, thickness in enumerate(thickness_m):
+        field = fields(frequency_hz, epsilon_layers, thickness_m, index, [0, thickness], **options)
+        absorbed.append(float((field["flux_w_m2"][0] - field["flux_w_m2"][1]) / field["incident_flux_w_m2"]))
+    return np.array(absorbed)
