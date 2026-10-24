@@ -53,3 +53,15 @@ def fresnel_oblique(frequency_hz, epsilon_left, epsilon_right, angle_radians, po
         "kz_left": left,
         "kz_right": right,
     }
+
+
+def critical_angle(index_left, index_right):
+    if min(index_left, index_right) <= 0:
+        raise ValueError("positive real refractive indices required")
+    return None if index_right >= index_left else float(np.arcsin(index_right / index_left))
+
+
+def brewster_angle(index_left, index_right):
+    if min(index_left, index_right) <= 0:
+        raise ValueError("positive real refractive indices required")
+    return float(np.arctan(index_right / index_left))

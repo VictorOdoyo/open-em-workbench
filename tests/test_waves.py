@@ -32,3 +32,9 @@ def test_oblique_brewster_zero_and_total_internal_reflection():
         result = m.fresnel_oblique(1e9, 4, 1, np.pi / 3, pol)
         assert result["R"] == pytest.approx(1)
         assert result["T"] == pytest.approx(0)
+
+
+def test_angle_references_distinguish_no_critical_angle_from_normal_incidence():
+    assert m.critical_angle(1, 2) is None
+    assert m.critical_angle(2, 1) == pytest.approx(np.pi / 6)
+    assert m.brewster_angle(1, 2) == pytest.approx(np.arctan(2))
