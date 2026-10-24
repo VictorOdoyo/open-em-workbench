@@ -31,3 +31,13 @@ def test_material_design_improves_capacitance_without_adding_dielectric_volume()
     weights = dual_weights(grid)[mask]
     assert np.sum(epsilon[mask] * weights) / weights.sum() == pytest.approx(2.5, abs=1e-12)
     assert np.min(epsilon) >= 1 and np.max(epsilon) <= 4
+
+
+@pytest.mark.parametrize("bounds", [(0, 4), (-1, 4), (4, 1), (1, float("inf"))])
+def test_design_rejects_nonphysical_material_bounds(bounds):
+    from emlab.grid import Grid2D, boundary_mask
+
+    grid = Grid2D(7, 7, 0.001, 0.001)
+    fixed = boundary_mask(grid)
+    with pytest.raises(ValueError, match="bounds"):
+        m.optimize_dielectric(grid, fixed, 0, ~fixed, bounds=bounds)

@@ -51,6 +51,8 @@ def optimize_dielectric(
         raise ValueError("positive optimization iteration count and step required")
     epsilon = np.broadcast_to(finite_array(initial_epsilon, real=True), grid.shape).copy()
     lower, upper = bounds
+    if not np.all(np.isfinite([lower, upper])) or not 0 < lower < upper:
+        raise ValueError("positive ordered finite dielectric bounds required")
     if np.any((epsilon[mask] < lower) | (epsilon[mask] > upper)) or np.any(epsilon <= 0):
         raise ValueError("initial material must satisfy positive bounds")
     weight = dual_weights(grid)[mask]
