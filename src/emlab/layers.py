@@ -145,3 +145,12 @@ def absorption_by_layer(frequency_hz, epsilon_layers, thickness_m, **options):
         field = fields(frequency_hz, epsilon_layers, thickness_m, index, [0, thickness], **options)
         absorbed.append(float((field["flux_w_m2"][0] - field["flux_w_m2"][1]) / field["incident_flux_w_m2"]))
     return np.array(absorbed)
+
+
+def antireflection(center_hz, index_incident, index_substrate):
+    from .core import C0
+
+    if min(center_hz, index_incident, index_substrate) <= 0:
+        raise ValueError("positive design frequency and refractive indices required")
+    index = np.sqrt(index_incident * index_substrate)
+    return {"epsilon_r": float(index**2), "thickness_m": float(C0 / (4 * center_hz * index))}

@@ -62,3 +62,10 @@ def test_layer_resolved_absorption_sums_to_global_power_loss():
     assert np.all(absorbed > -1e-13)
     assert abs(absorbed[-1]) < 1e-13
     assert absorbed.sum() == pytest.approx(result["A"], abs=1e-12)
+
+
+def test_quarter_wave_coating_cancels_design_frequency_reflection():
+    coating = m.antireflection(3e9, 1, 2)
+    result = m.stack(3e9, [coating["epsilon_r"]], [coating["thickness_m"]], epsilon_substrate=4)
+    assert result["R"] < 1e-25
+    assert result["T"] == pytest.approx(1)
