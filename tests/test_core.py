@@ -45,3 +45,10 @@ def test_named_random_streams_are_stable_and_distinct():
     assert not np.array_equal(
         m.random_stream(9, "source").normal(size=8), m.random_stream(9, "noise").normal(size=8)
     )
+
+
+def test_nonuniform_quadrature_preserves_complex_fields():
+    x = np.array([0, 0.1, 0.4, 1])
+    assert m.integrate((2 + 3j) * x, x) == pytest.approx(1 + 1.5j)
+    with pytest.raises(ValueError):
+        m.integrate([1, 2], [1, 0])

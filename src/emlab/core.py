@@ -69,3 +69,11 @@ def random_stream(seed, name):
     digest = hashlib.sha256(name.encode("utf-8")).digest()
     sequence = np.random.SeedSequence([seed, *np.frombuffer(digest, dtype="<u4").tolist()])
     return np.random.default_rng(sequence)
+
+
+def integrate(samples, coordinates, axis=-1):
+    samples = finite_array(samples)
+    coordinates = finite_array(coordinates, real=True, ndim=1)
+    if len(coordinates) < 2 or np.any(np.diff(coordinates) <= 0) or samples.shape[axis] != len(coordinates):
+        raise ValueError("ordered coordinates aligned with integration axis required")
+    return np.trapezoid(samples, coordinates, axis=axis)
