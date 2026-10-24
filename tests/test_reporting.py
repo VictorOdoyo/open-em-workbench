@@ -96,3 +96,16 @@ def test_renderer_handles_curves_complex_components_and_masked_singular_regions(
     result["plots"].append(image("Complex field magnitude", "map", grid, "|E| (V/m)", "abs", "mask"))
     path = m.plot_result(result, tmp_path / "figure.png")
     assert path.read_bytes().startswith(b"\x89PNG")
+
+
+def test_html_report_escapes_metadata_and_records_all_physical_data(tmp_path):
+    result = _example()
+    result["summary"]["unsafe_label"] = "<script>bad()</script>"
+    result["assumptions"] = ["<b>literal text</b>"]
+    path = m.write_report(result, tmp_path)
+    text = path.read_text(encoding="utf-8")
+    assert "<script>" not in text and "&lt;script&gt;" in text
+    assert "&lt;b&gt;" in text and "Physical parameters" in text
+    assert (tmp_path / "fields.npz").is_file()
+    assert (tmp_path / "table_samples.csv").is_file()
+    assert b"\r\n" not in path.read_bytes()
