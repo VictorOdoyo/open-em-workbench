@@ -20,3 +20,12 @@ def test_finite_validation_retains_complex_phase_and_rejects_invalid_inputs():
             m.finite_array(value)
     with pytest.raises(ValueError):
         m.finite_array([1j], real=True)
+
+
+def test_field_and_power_decibels_do_not_confuse_amplitude_with_energy():
+    assert m.to_db(0.5, field=True) == pytest.approx(m.to_db(0.25))
+    assert m.to_db(1j, field=True) == 0
+    assert np.isneginf(m.to_db(0))
+    assert np.allclose(m.from_db(m.to_db([0.1, 1, 10])), [0.1, 1, 10])
+    with pytest.raises(ValueError):
+        m.to_db(-1)

@@ -29,3 +29,16 @@ def finite_array(values, *, real=False, ndim=None):
     if ndim is not None and array.ndim != ndim:
         raise ValueError("unexpected array rank")
     return array.real.astype(float) if real else array
+
+
+def to_db(values, *, field=False):
+    values = finite_array(values)
+    magnitude = abs(values) if field else values
+    if np.iscomplexobj(magnitude) or np.any(magnitude < 0):
+        raise ValueError("nonnegative real power ratios required")
+    with np.errstate(divide="ignore"):
+        return (20 if field else 10) * np.log10(magnitude)
+
+
+def from_db(values, *, field=False):
+    return 10.0 ** (finite_array(values, real=True) / (20 if field else 10))
