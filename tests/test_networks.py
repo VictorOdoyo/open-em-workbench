@@ -30,3 +30,13 @@ def test_chain_conversion_matches_known_series_element_with_unequal_ports():
     assert np.allclose(m.s_to_abcd(scattering, (35, 80)), matrix)
     with pytest.raises(ValueError, match="too small"):
         m.s_to_abcd(np.zeros((2, 2)))
+
+
+def test_redheffer_product_matches_chain_cascade_and_handles_extreme_attenuation():
+    first, second = m.series(20), m.shunt(0.01j)
+    expected = m.abcd_to_s(m.cascade(first, second))
+    assert np.allclose(m.star(m.abcd_to_s(first), m.abcd_to_s(second)), expected)
+    attenuator = np.array([[0, 1e-100], [1e-100, 0]], complex)
+    result = m.star(attenuator, attenuator)
+    assert np.all(np.isfinite(result))
+    assert result[1, 0] == pytest.approx(1e-200, abs=0, rel=1e-12)

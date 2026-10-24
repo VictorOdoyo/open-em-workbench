@@ -69,3 +69,21 @@ def s_to_abcd(scattering, reference=(50.0, 50.0)):
     result[..., 1, 0] = ((1 - s11) * (1 - s22) - s12 * s21) / (2 * s21 * np.sqrt(z.prod()))
     result[..., 1, 1] = np.sqrt(z[1] / z[0]) * ((1 - s11) * (1 + s22) + s12 * s21) / (2 * s21)
     return result
+
+
+def star(left, right):
+    from .core import finite_array
+
+    a, b = finite_array(left), finite_array(right)
+    if a.shape[-2:] != (2, 2) or b.shape[-2:] != (2, 2):
+        raise ValueError("two-port scattering matrices required")
+    a, b = np.broadcast_arrays(a, b)
+    denominator = 1 - a[..., 1, 1] * b[..., 0, 0]
+    if np.any(abs(denominator) < 1e-15):
+        raise ValueError("singular internal multiple-reflection resonance")
+    result = np.empty(a.shape, complex)
+    result[..., 0, 0] = a[..., 0, 0] + a[..., 0, 1] * b[..., 0, 0] * a[..., 1, 0] / denominator
+    result[..., 0, 1] = a[..., 0, 1] * b[..., 0, 1] / denominator
+    result[..., 1, 0] = b[..., 1, 0] * a[..., 1, 0] / denominator
+    result[..., 1, 1] = b[..., 1, 1] + b[..., 1, 0] * a[..., 1, 1] * b[..., 0, 1] / denominator
+    return result
