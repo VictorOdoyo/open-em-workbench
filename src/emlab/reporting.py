@@ -177,3 +177,71 @@ def export_data(result, directory):
             writer.writeheader()
             writer.writerows(rows)
     return directory
+
+
+def plot_result(result, path):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    from pathlib import Path
+
+    import matplotlib.pyplot as plt
+
+    from .results import validate
+
+    validate(result)
+    panels = result["plots"]
+    columns = 1 if len(panels) == 1 else 2
+    rows = (len(panels) + columns - 1) // columns
+    fig, axes = plt.subplots(
+        rows, columns, figsize=(7 * columns, 4.6 * rows), layout="constrained", squeeze=False
+    )
+    arrays = result["arrays"]
+    for ax, plot in zip(axes.flat, panels, strict=False):
+        if plot["kind"] == "curve":
+            x = arrays[plot["x"]]
+            selected = np.ones(len(x), bool) if plot["valid"] is None else arrays[plot["valid"]]
+            for series in plot["series"]:
+                y = np.asarray(arrays[series["key"]], dtype=float)
+                shown = np.where(selected, y, np.nan)
+                style = "o-" if len(x) <= 12 else "-"
+                if any(word in series["label"].lower() for word in ("exact", "analytic", "reference")):
+                    style = "--"
+                ax.plot(x, shown, style, label=series["label"], linewidth=1.6, markersize=4)
+            ax.set(xscale=plot["xscale"], yscale=plot["yscale"])
+            ax.grid(alpha=0.22)
+            ax.legend(fontsize=8)
+        else:
+            field = arrays[plot["array"]]
+            if plot["component"] == "abs":
+                field = abs(field)
+            elif plot["component"] == "imag":
+                field = field.imag
+            else:
+                field = field.real
+            if plot["mask"] is not None:
+                field = np.ma.masked_where(arrays[plot["mask"]], field)
+            signed = np.min(field) < 0 < np.max(field)
+            colormap = plt.get_cmap("RdBu_r" if signed else "viridis").copy()
+            colormap.set_bad("#d1d5db")
+            limit = float(np.max(abs(field))) if signed else None
+            shown = ax.pcolormesh(
+                plot["x"],
+                plot["y"],
+                field,
+                shading="nearest",
+                cmap=colormap,
+                vmin=-limit if signed else None,
+                vmax=limit,
+            )
+            ax.set(xlim=(plot["x"][0], plot["x"][-1]), ylim=(plot["y"][0], plot["y"][-1]), aspect="equal")
+            fig.colorbar(shown, ax=ax, label=plot["colorbar"], pad=0.02)
+        ax.set(title=plot["title"], xlabel=plot["xlabel"], ylabel=plot["ylabel"])
+    for ax in list(axes.flat)[len(panels) :]:
+        ax.set_axis_off()
+    fig.suptitle(result["name"] + " | numerical electromagnetics", fontsize=14)
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path

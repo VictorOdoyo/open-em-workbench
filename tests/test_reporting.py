@@ -83,3 +83,16 @@ def test_exported_metadata_and_csv_have_canonical_lf_bytes_on_every_platform(tmp
         rows = list(csv.DictReader(stream))
     assert float(rows[1]["error"]) == 0.02
     assert json.loads((tmp_path / "parameters.json").read_text())["frequency_hz"] == 1e9
+
+
+def test_renderer_handles_curves_complex_components_and_masked_singular_regions(tmp_path):
+    from emlab.grid import Grid2D
+    from emlab.results import image
+
+    result = _example()
+    grid = Grid2D(3, 3, 0.1, 0.1)
+    result["arrays"]["map"] = np.arange(9).reshape(3, 3) * (1 + 1j)
+    result["arrays"]["mask"] = np.eye(3, dtype=bool)
+    result["plots"].append(image("Complex field magnitude", "map", grid, "|E| (V/m)", "abs", "mask"))
+    path = m.plot_result(result, tmp_path / "figure.png")
+    assert path.read_bytes().startswith(b"\x89PNG")
