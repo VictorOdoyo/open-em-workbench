@@ -23,3 +23,16 @@ def test_batch_rejects_duplicate_output_names_before_writing(tmp_path):
     with pytest.raises(ValueError, match="duplicate"):
         capture([config, config], tmp_path)
     assert not list(tmp_path.iterdir())
+
+
+def test_catalog_render_replays_original_source_and_detects_damaged_figure(tmp_path):
+    from emlab.batch import render, verify
+
+    capture([ExperimentConfig("multilayer-coating")], tmp_path, data_only=True)
+    source = load_catalog(tmp_path)[0]["provenance"]
+    assert render(tmp_path) == 1
+    assert verify(tmp_path) == 1
+    assert load_catalog(tmp_path)[0]["provenance"] == source
+    (tmp_path / "multilayer-coating" / "figure.png").write_bytes(b"damaged")
+    with pytest.raises(ValueError, match="integrity"):
+        verify(tmp_path)

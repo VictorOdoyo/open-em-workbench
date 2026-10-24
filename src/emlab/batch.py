@@ -69,3 +69,25 @@ def load_catalog(directory):
             raise ValueError("archive case mismatch")
         results.append(result)
     return results
+
+
+def render(directory, progress=None):
+    from .reporting import verify_report, write_report
+
+    results = load_catalog(directory)
+    for result in results:
+        if progress is not None:
+            progress("Rendering " + result["name"])
+        target = Path(directory) / result["name"]
+        write_report(result, target)
+        verify_report(target)
+    return len(results)
+
+
+def verify(directory):
+    from .reporting import verify_report
+
+    results = load_catalog(directory)
+    for result in results:
+        verify_report(Path(directory) / result["name"])
+    return len(results)
