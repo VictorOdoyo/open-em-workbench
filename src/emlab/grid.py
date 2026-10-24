@@ -68,3 +68,21 @@ def nearest_index(grid, x, y):
     if not np.isfinite(x + y) or not grid.x[0] <= x <= grid.x[-1] or not grid.y[0] <= y <= grid.y[-1]:
         raise ValueError("probe lies outside the computational domain")
     return int(np.rint((y - grid.y0) / grid.dy)), int(np.rint((x - grid.x0) / grid.dx))
+
+
+def sample_bilinear(grid, field, x, y):
+    from .core import finite_array
+
+    field = finite_array(field)
+    if field.shape != grid.shape:
+        raise ValueError("field must match grid shape")
+    nearest_index(grid, x, y)
+    ux, uy = (x - grid.x0) / grid.dx, (y - grid.y0) / grid.dy
+    ix, iy = min(int(np.floor(ux)), grid.nx - 2), min(int(np.floor(uy)), grid.ny - 2)
+    tx, ty = ux - ix, uy - iy
+    return (
+        (1 - tx) * (1 - ty) * field[iy, ix]
+        + tx * (1 - ty) * field[iy, ix + 1]
+        + (1 - tx) * ty * field[iy + 1, ix]
+        + tx * ty * field[iy + 1, ix + 1]
+    )

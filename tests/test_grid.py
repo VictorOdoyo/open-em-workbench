@@ -41,3 +41,10 @@ def test_probe_mapping_rejects_outside_locations_instead_of_clamping():
     assert m.nearest_index(grid, 0.39, 0.29) == (3, 2)
     with pytest.raises(ValueError):
         m.nearest_index(grid, -0.1, 0)
+
+
+def test_bilinear_probe_is_exact_for_complex_affine_fields():
+    grid = m.Grid2D(8, 6, 0.2, 0.3)
+    x, y = grid.mesh()
+    field = (2 + 1j) * x - 3 * y
+    assert m.sample_bilinear(grid, field, 0.37, 0.71) == pytest.approx((2 + 1j) * 0.37 - 3 * 0.71)
