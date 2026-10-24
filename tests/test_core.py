@@ -36,3 +36,12 @@ def test_relative_error_preserves_amplitude_and_complex_phase_mistakes():
     assert m.relative_error([1j, 2j], [-1j, -2j]) == pytest.approx(2)
     with pytest.raises(ValueError):
         m.relative_error([0], [1])
+
+
+def test_named_random_streams_are_stable_and_distinct():
+    assert np.array_equal(
+        m.random_stream(9, "source").normal(size=8), m.random_stream(9, "source").normal(size=8)
+    )
+    assert not np.array_equal(
+        m.random_stream(9, "source").normal(size=8), m.random_stream(9, "noise").normal(size=8)
+    )

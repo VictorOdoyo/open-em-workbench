@@ -59,3 +59,13 @@ def relative_error(reference, observed, weights=None):
     if denominator <= 0:
         raise ValueError("nonzero reference energy required")
     return float(np.sqrt(np.sum(weights * abs(observed - reference) ** 2) / denominator))
+
+
+def random_stream(seed, name):
+    import hashlib
+
+    if not isinstance(seed, int) or isinstance(seed, bool) or seed < 0 or not isinstance(name, str):
+        raise ValueError("nonnegative integer seed and stream name required")
+    digest = hashlib.sha256(name.encode("utf-8")).digest()
+    sequence = np.random.SeedSequence([seed, *np.frombuffer(digest, dtype="<u4").tolist()])
+    return np.random.default_rng(sequence)
