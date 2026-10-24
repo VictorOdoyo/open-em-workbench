@@ -48,3 +48,10 @@ def test_bilinear_probe_is_exact_for_complex_affine_fields():
     x, y = grid.mesh()
     field = (2 + 1j) * x - 3 * y
     assert m.sample_bilinear(grid, field, 0.37, 0.71) == pytest.approx((2 + 1j) * 0.37 - 3 * 0.71)
+
+
+def test_refinement_preserves_domain_and_embeds_coarse_nodes():
+    grid = m.Grid2D(7, 5, 0.2, 0.3, -1, 2)
+    fine = m.refine(grid, 3)
+    assert np.allclose(fine.x[::3], grid.x)
+    assert np.allclose(fine.y[::3], grid.y)

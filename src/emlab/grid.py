@@ -86,3 +86,16 @@ def sample_bilinear(grid, field, x, y):
         + (1 - tx) * ty * field[iy + 1, ix]
         + tx * ty * field[iy + 1, ix + 1]
     )
+
+
+def refine(grid, factor=2):
+    if not isinstance(factor, int) or isinstance(factor, bool) or factor < 2:
+        raise ValueError("integer refinement factor at least two required")
+    return Grid2D(
+        (grid.nx - 1) * factor + 1,
+        (grid.ny - 1) * factor + 1,
+        grid.dx / factor,
+        grid.dy / factor,
+        grid.x0,
+        grid.y0,
+    )
