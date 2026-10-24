@@ -21,3 +21,15 @@ def test_annular_shell_excludes_center_and_has_correct_signed_distance():
     shell = m.annulus(grid, (0, 0), 0.2, 0.6)
     assert not shell[10, 10] and shell[10, 14]
     assert m.circle_distance(grid, (0, 0), 0.6)[10, 10] == pytest.approx(-0.6)
+
+
+def test_conductor_assignment_detects_contacts_and_overlaps():
+    from emlab.grid import Grid2D
+
+    grid = Grid2D(9, 9, 1, 1)
+    mask = np.zeros(grid.shape, bool)
+    mask[3:5, 3:5] = True
+    labels = m.conductor_labels(grid, [mask])
+    assert labels[3, 3] == 1 and labels[0, 0] == 0 and labels[1, 1] == -1
+    with pytest.raises(ValueError, match="overlap"):
+        m.conductor_labels(grid, [mask, mask])

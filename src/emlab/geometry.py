@@ -27,3 +27,18 @@ def annulus(grid, center, inner_radius, outer_radius):
         raise ValueError("ordered positive annular radii required")
     distance = circle_distance(grid, center, outer_radius) + outer_radius
     return (distance >= inner_radius) & (distance <= outer_radius)
+
+
+def conductor_labels(grid, masks):
+    from .grid import boundary_mask
+
+    labels = np.full(grid.shape, -1, dtype=int)
+    labels[boundary_mask(grid)] = 0
+    for label, mask in enumerate(masks, 1):
+        mask = np.asarray(mask)
+        if mask.dtype != bool or mask.shape != grid.shape or not np.any(mask):
+            raise ValueError("nonempty boolean conductor mask matching grid required")
+        if np.any(labels[mask] != -1):
+            raise ValueError("conductor overlaps another conductor or the exterior ground")
+        labels[mask] = label
+    return labels
