@@ -12,3 +12,22 @@ def test_bounded_material_projection_satisfies_budget_bounds_and_stationarity():
     assert np.sum(projected * weights) / weights.sum() == pytest.approx(2.5, abs=1e-13)
     interior = (projected > 1 + 1e-12) & (projected < 4 - 1e-12)
     assert np.ptp((projected - values)[interior]) < 1e-12
+
+
+def test_material_design_improves_capacitance_without_adding_dielectric_volume():
+    from emlab.geometry import conductor_labels
+    from emlab.grid import Grid2D, dual_weights
+
+    grid = Grid2D(25, 21, 0.001, 0.001)
+    electrode = np.zeros(grid.shape, bool)
+    electrode[7:14, 11:14] = True
+    labels = conductor_labels(grid, [electrode])
+    mask = labels < 0
+    result = m.optimize_dielectric(grid, labels >= 0, (labels == 1).astype(float), mask, iterations=6)
+    history = np.array([r["energy_j_m"] for r in result["history"]])
+    assert history[-1] > history[0] * 1.03
+    assert np.all(np.diff(history) >= 0)
+    epsilon = result["epsilon_r"]
+    weights = dual_weights(grid)[mask]
+    assert np.sum(epsilon[mask] * weights) / weights.sum() == pytest.approx(2.5, abs=1e-12)
+    assert np.min(epsilon) >= 1 and np.max(epsilon) <= 4
