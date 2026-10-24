@@ -60,3 +60,13 @@ def test_open_short_matching_and_standing_wave_ratio():
     assert m.standing_wave_ratio(0.5) == pytest.approx(3)
     assert np.isinf(m.standing_wave_ratio(1))
     assert abs(m.reflection(1j * 50)) == pytest.approx(1)
+
+
+def test_scattering_audit_detects_active_gain_and_nonreciprocity():
+    resistor = m.scattering_audit(m.abcd_to_s(m.series(50)))
+    assert resistor["passivity_margin"] >= -1e-14
+    assert resistor["reciprocity_error"] < 1e-14
+    active = np.array([[0, 0], [2, 0]], complex)
+    audit = m.scattering_audit(active)
+    assert audit["passivity_margin"] == pytest.approx(-3)
+    assert audit["reciprocity_error"] > 0

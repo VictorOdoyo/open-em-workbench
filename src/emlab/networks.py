@@ -136,3 +136,14 @@ def standing_wave_ratio(reflection_coefficient):
     magnitude = np.minimum(magnitude, 1)
     with np.errstate(divide="ignore"):
         return (1 + magnitude) / (1 - magnitude)
+
+
+def scattering_audit(scattering):
+    from .core import finite_array
+
+    s = finite_array(scattering)
+    if s.ndim < 2 or s.shape[-1] != s.shape[-2]:
+        raise ValueError("square scattering matrices required")
+    singular = np.linalg.svd(s, compute_uv=False)
+    reciprocity = np.linalg.norm(s - np.swapaxes(s, -1, -2), axis=(-2, -1))
+    return {"passivity_margin": 1 - singular[..., 0] ** 2, "reciprocity_error": reciprocity}
