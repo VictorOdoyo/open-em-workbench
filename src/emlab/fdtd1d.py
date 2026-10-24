@@ -174,3 +174,28 @@ def sheet_current(state, node, amplitude_a_m):
     current = np.zeros(state.nodes)
     current[node] = amplitude / state.dx
     return current
+
+
+class Debye1D(CPML1D):
+    def __init__(self, nodes, spacing_m, epsilon_static, epsilon_infinity, relaxation_s, **options):
+        from .core import finite_array
+        from .timedomain import debye_coefficients
+
+        super().__init__(nodes, spacing_m, epsilon_r=epsilon_infinity, **options)
+        self.static_epsilon = np.broadcast_to(finite_array(epsilon_static, real=True), (nodes,)).copy()
+        self.relaxation = np.broadcast_to(finite_array(relaxation_s, real=True), (nodes,)).copy()
+        self.da, self.db = debye_coefficients(self.static_epsilon, self.epsilon, self.relaxation, self.dt)
+        self.polarization = np.zeros(nodes)
+
+    def _update_electric(self, derivative, current):
+        from .core import EPS0
+
+        old_e = self.e[1:-1].copy()
+        old_p = self.polarization[1:-1].copy()
+        high = EPS0 * self.epsilon[1:-1]
+        loss = self.conductivity[1:-1] * self.dt / 2
+        coupling, decay = self.db[1:-1], self.da[1:-1]
+        self.e[1:-1] = (
+            (high - coupling - loss) * old_e + (1 - decay) * old_p - self.dt * (derivative + current)
+        ) / (high + coupling + loss)
+        self.polarization[1:-1] = decay * old_p + coupling * (self.e[1:-1] + old_e)

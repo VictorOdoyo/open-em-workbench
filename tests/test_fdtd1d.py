@@ -96,3 +96,14 @@ def test_sheet_current_integral_is_independent_of_grid_spacing():
         assert np.sum(source) * dx == pytest.approx(0.3)
     with pytest.raises(ValueError):
         m.sheet_current(m.CPML1D(101, 0.001, pml_cells=12), 5, 1)
+
+
+def test_zero_debye_strength_reduces_to_nondispersive_cpml_solver():
+    first = m.CPML1D(101, 0.001, pml_cells=12, epsilon_r=2, conductivity_s_m=0.01)
+    second = m.Debye1D(101, 0.001, 2, 2, 1e-10, pml_cells=12, conductivity_s_m=0.01)
+    first.e[50] = second.e[50] = 1
+    for _ in range(100):
+        first.step()
+        second.step()
+    assert np.allclose(first.e, second.e, atol=1e-14, rtol=1e-11)
+    assert np.allclose(first.h, second.h, atol=1e-16, rtol=1e-11)
