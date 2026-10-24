@@ -119,3 +119,19 @@ class CPMLTMz(TMz2D):
         self.psi_ex = bx * self.psi_ex + cx * dx
         self.psi_ey = by * self.psi_ey + cy * dy
         return dx / kx + self.psi_ex - dy / ky - self.psi_ey
+
+
+def stored_energy(state, modified=False):
+    from .core import EPS0, MU0
+
+    area = state.grid.dx * state.grid.dy
+    electric = 0.5 * EPS0 * np.sum(state.epsilon * state.ez**2) * area
+    if modified:
+        if type(state) is not TMz2D or np.any(state.conductivity != 0):
+            raise ValueError("modified invariant requires lossless nondispersive PEC TMz2D")
+        dy, dx = state._gradients_e()
+        next_hx, next_hy = state.hx - state.ch * dy, state.hy + state.ch * dx
+        magnetic = 0.5 * MU0 * state.mu * (np.sum(state.hx * next_hx) + np.sum(state.hy * next_hy)) * area
+    else:
+        magnetic = 0.5 * MU0 * state.mu * (np.sum(state.hx**2) + np.sum(state.hy**2)) * area
+    return float(electric + magnetic)

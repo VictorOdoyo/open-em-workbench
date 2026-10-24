@@ -46,3 +46,17 @@ def test_two_dimensional_pml_absorbs_a_symmetric_outgoing_pulse():
         assert np.all(np.isfinite(state.ez))
         assert np.max(abs(state.ez - state.ez.T)) < 1e-12
     assert maxima[1] < 0.03 * maxima[0]
+
+
+def test_rectangular_cavity_energy_is_conserved_with_anisotropic_spacing():
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((0, 0.2), (0, 0.1), 41, 31)
+    state = m.TMz2D(grid)
+    x, y = grid.mesh()
+    state.ez[:] = np.sin(np.pi * x / 0.2) * np.sin(2 * np.pi * y / 0.1)
+    state.ez[state.pec] = 0
+    initial = m.stored_energy(state, modified=True)
+    for _ in range(300):
+        state.step()
+    assert m.stored_energy(state, modified=True) == pytest.approx(initial, rel=1e-12)
