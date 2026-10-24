@@ -94,3 +94,12 @@ def dielectric_coefficients(frequency_hz, radius_m, epsilon_r, epsilon_backgroun
     if not np.all(np.isfinite(basis["coefficient"])):
         raise RuntimeError("cylindrical material response exceeded stable special-function limits")
     return basis
+
+
+def compare_samples(reference, numerical):
+    from .core import relative_error
+
+    return {
+        "relative_l2": relative_error(reference, numerical),
+        "maximum_absolute": float(np.max(abs(np.asarray(reference) - np.asarray(numerical)))),
+    }
