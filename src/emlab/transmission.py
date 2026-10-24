@@ -65,3 +65,19 @@ def line_scattering(gamma, characteristic_impedance, length_m, reference=50.0):
     result[..., 0, 0] = result[..., 1, 1] = reflection
     result[..., 1, 0] = result[..., 0, 1] = transmission
     return result
+
+
+def input_impedance(gamma, characteristic_impedance, length_m, load_impedance):
+    from .core import finite_array
+
+    gamma, impedance = finite_array(gamma), finite_array(characteristic_impedance)
+    load = np.asarray(load_impedance, dtype=complex)
+    if length_m < 0 or np.any(~np.isfinite(load) & ~np.isposinf(load.real)):
+        raise ValueError("nonnegative length and finite load or positive-real open required")
+    opened = np.isposinf(load.real)
+    safe = np.where(opened, 0, load)
+    tangent = np.tanh(gamma * length_m)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        regular = impedance * (safe + impedance * tangent) / (impedance + safe * tangent)
+        open_value = impedance / tangent
+    return np.where(opened, open_value, regular)

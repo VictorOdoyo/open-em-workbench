@@ -29,3 +29,10 @@ def test_stable_line_scattering_matches_chain_reference_and_survives_thick_loss(
     thick = m.line_scattering(1e5 + 1j, 60 + 3j, 1)
     assert np.all(np.isfinite(thick))
     assert thick[1, 0] == 0
+
+
+def test_quarter_wave_line_inverts_resistive_load_and_swaps_open_short():
+    gamma = 1j * np.pi / 2
+    assert m.input_impedance(gamma, 50, 1, 100) == pytest.approx(25)
+    assert abs(m.input_impedance(gamma, 50, 1, 0)) > 1e15
+    assert abs(m.input_impedance(gamma, 50, 1, np.inf)) < 1e-12
