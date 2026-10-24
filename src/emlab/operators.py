@@ -26,3 +26,14 @@ def edge_geometry(grid):
         np.broadcast_to(wx[None, :], (grid.ny - 1, grid.nx)).ravel(),
     ]
     return lengths, areas
+
+
+def harmonic_edges(grid, values):
+    from .core import finite_array
+
+    field = np.broadcast_to(finite_array(values, real=True), grid.shape)
+    if np.any(field <= 0):
+        raise ValueError("positive scalar material coefficients required")
+    x = 2 * field[:, :-1] * field[:, 1:] / (field[:, :-1] + field[:, 1:])
+    y = 2 * field[:-1, :] * field[1:, :] / (field[:-1, :] + field[1:, :])
+    return np.r_[x.ravel(), y.ravel()]
