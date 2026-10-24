@@ -131,3 +131,27 @@ def quarter_wave(source_impedance, load_impedance, center_hz, velocity_m_s):
         "impedance_ohm": np.sqrt(source_impedance * load_impedance),
         "length_m": velocity_m_s / (4 * center_hz),
     }
+
+
+def tapered_line(
+    frequency_hz, start_impedance, end_impedance, length_m, velocity_m_s, segments=32, reference=50.0
+):
+    from .core import finite_array
+    from .networks import star
+
+    f = finite_array(frequency_hz, real=True)
+    if (
+        np.any(f <= 0)
+        or min(start_impedance, end_impedance, length_m, velocity_m_s) <= 0
+        or not isinstance(segments, int)
+        or segments < 1
+    ):
+        raise ValueError("positive taper parameters and section count required")
+    locations = (np.arange(segments) + 0.5) / segments
+    impedances = start_impedance * (end_impedance / start_impedance) ** locations
+    result = np.broadcast_to(np.array([[0, 1], [1, 0]], complex), (*f.shape, 2, 2)).copy()
+    for impedance in impedances:
+        result = star(
+            result, line_scattering(2j * np.pi * f / velocity_m_s, impedance, length_m / segments, reference)
+        )
+    return result

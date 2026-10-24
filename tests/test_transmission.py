@@ -67,3 +67,14 @@ def test_quarter_wave_transformer_matches_at_design_frequency():
     gamma = 2j * np.pi * 1e9 / C0
     impedance = m.input_impedance(gamma, section["impedance_ohm"], section["length_m"], 200)
     assert impedance == pytest.approx(50)
+
+
+def test_uniform_taper_reduces_to_one_line_and_nonuniform_taper_is_passive():
+    from emlab.core import C0
+    from emlab.networks import scattering_audit
+
+    f = np.linspace(0.5e9, 1.5e9, 13)
+    uniform = m.tapered_line(f, 50, 50, 0.2, C0)
+    assert np.allclose(uniform, m.line_scattering(2j * np.pi * f / C0, 50, 0.2))
+    taper = m.tapered_line(f, 50, 100, 0.2, C0, 16)
+    assert np.min(scattering_audit(taper)["passivity_margin"]) > -1e-12
