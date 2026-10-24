@@ -40,3 +40,15 @@ def test_lossless_film_conserves_power_and_resonant_halfwave_is_transparent():
     assert center["T"] == pytest.approx(1)
     thick = m.stack(1e9, [-1000 - 1e5j], [10])
     assert np.isfinite(thick["A"]) and 0 <= thick["A"] <= 1
+
+
+def test_internal_layer_fields_match_external_boundary_conditions():
+    from emlab.core import C0, ETA0
+
+    thickness = C0 / (7 * 1e9)
+    result = m.stack(1e9, [3 - 0.2j], [thickness])
+    field = m.fields(1e9, [3 - 0.2j], [thickness], 0, [0, thickness])
+    assert field["electric"][0] == pytest.approx(1 + result["r"])
+    assert field["magnetic"][0] == pytest.approx((1 - result["r"]) / ETA0)
+    assert field["electric"][-1] == pytest.approx(result["t"])
+    assert field["magnetic"][-1] == pytest.approx(result["t"] / ETA0)

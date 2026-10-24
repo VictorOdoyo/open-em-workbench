@@ -105,3 +105,35 @@ def stack(frequency_hz, epsilon_layers, thickness_m, **options):
         "A": 1 - reflectance - transmittance,
         "s": scattering,
     }
+
+
+def fields(frequency_hz, epsilon_layers, thickness_m, layer_index, positions_m, **options):
+    from .core import finite_array
+
+    if (
+        np.ndim(frequency_hz) != 0
+        or not isinstance(layer_index, int)
+        or not 0 <= layer_index < len(epsilon_layers)
+    ):
+        raise ValueError("one frequency and a valid layer index required")
+    system = components(frequency_hz, epsilon_layers, thickness_m, **options)
+    distance = finite_array(positions_m, real=True)
+    thickness = float(system["thickness"][layer_index])
+    if np.any((distance < 0) | (distance > thickness)):
+        raise ValueError("field coordinates must lie inside the selected layer")
+    prefix = _compose(system["pieces"][: 2 * layer_index + 1])
+    suffix = _compose(system["pieces"][2 * layer_index + 2 :])
+    kz, admittance = system["kz"][layer_index + 1], system["admittance"][layer_index + 1]
+    wave = np.exp(-1j * kz * thickness)
+    forward_left = prefix[1, 0] / (1 - prefix[1, 1] * wave**2 * suffix[0, 0])
+    backward_right = suffix[0, 0] * forward_left * wave
+    forward = forward_left * np.exp(-1j * kz * distance)
+    backward = backward_right * np.exp(-1j * kz * (thickness - distance))
+    electric = forward + backward
+    magnetic = admittance * (forward - backward)
+    return {
+        "electric": electric,
+        "magnetic": magnetic,
+        "flux_w_m2": 0.5 * np.real(electric * magnetic.conj()),
+        "incident_flux_w_m2": float(0.5 * system["admittance"][0].real),
+    }
