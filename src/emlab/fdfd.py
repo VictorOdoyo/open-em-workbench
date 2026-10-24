@@ -48,3 +48,25 @@ def operator(grid, frequency_hz, epsilon_r=1.0, pml_cells=12):
     volume = dual_weights(grid) * stretch["ye"][:, None] * stretch["xe"][None, :]
     matrix = (stiffness - diags(((2 * np.pi * frequency_hz / C0) ** 2 * epsilon * volume).ravel())).tocsr()
     return {"matrix": matrix, "coordinate_volume": volume, "stretch": stretch}
+
+
+def solve(grid, frequency_hz, current_density, epsilon_r=1.0, pml_cells=12, pec_mask=None):
+    from .core import MU0, finite_array
+    from .grid import boundary_mask
+    from .operators import eliminate_dirichlet, solve_linear
+
+    model = operator(grid, frequency_hz, epsilon_r, pml_cells)
+    fixed = boundary_mask(grid)
+    if pec_mask is not None:
+        mask = np.asarray(pec_mask)
+        if mask.shape != grid.shape or mask.dtype != bool:
+            raise ValueError("boolean PEC mask matching the electric grid required")
+        fixed |= mask
+    current = np.broadcast_to(finite_array(current_density), grid.shape)
+    if np.any(current[fixed] != 0):
+        raise ValueError("impressed current cannot occupy PEC nodes")
+    load = (-2j * np.pi * frequency_hz * MU0 * current * model["coordinate_volume"]).ravel()
+    reduced, rhs, free, field = eliminate_dirichlet(model["matrix"], load, fixed)
+    solution, residual, _ = solve_linear(reduced, rhs)
+    field[free] = solution
+    return {"electric": field.reshape(grid.shape), "residual": residual}

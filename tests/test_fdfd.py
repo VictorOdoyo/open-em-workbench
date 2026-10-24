@@ -30,3 +30,23 @@ def test_closed_helmholtz_operator_matches_analytic_discrete_sine_eigenvalue():
     expected = (eigenvalue - 2 * (2 * np.pi * 0.5e9 / C0) ** 2) * field * model["coordinate_volume"]
     assert np.allclose(value[1:-1, 1:-1], expected[1:-1, 1:-1], rtol=1e-11, atol=1e-13)
     assert np.max(abs((model["matrix"] - model["matrix"].T).data), initial=0) < 1e-12
+
+
+def test_current_driven_helmholtz_matches_manufactured_cavity_solution():
+    from emlab.core import C0, MU0
+    from emlab.grid import from_bounds
+
+    frequency = 0.5e9
+    grid = from_bounds((0, 0.2), (0, 0.1), 31, 21)
+    x, y = grid.mesh()
+    field = np.sin(np.pi * x / 0.2) * np.sin(np.pi * y / 0.1)
+    eigenvalue = (
+        4 * np.sin(np.pi / (2 * (grid.nx - 1))) ** 2 / grid.dx**2
+        + 4 * np.sin(np.pi / (2 * (grid.ny - 1))) ** 2 / grid.dy**2
+    )
+    current = 1j * (eigenvalue - (2 * np.pi * frequency / C0) ** 2) / (2 * np.pi * frequency * MU0) * field
+    current[[0, -1], :] = 0
+    current[:, [0, -1]] = 0
+    result = m.solve(grid, frequency, current, pml_cells=0)
+    assert np.max(abs(result["electric"] - field)) < 1e-12
+    assert result["residual"] < 1e-12
