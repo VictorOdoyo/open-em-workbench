@@ -11,3 +11,18 @@ def incidence(grid):
     columns = np.column_stack((tail, head)).ravel()
     values = np.tile([-1.0, 1.0], len(tail))
     return csr_matrix((values, (rows, columns)), shape=(len(tail), nodes.size))
+
+
+def edge_geometry(grid):
+    wx = np.full(grid.nx, grid.dx)
+    wy = np.full(grid.ny, grid.dy)
+    wx[[0, -1]] *= 0.5
+    wy[[0, -1]] *= 0.5
+    horizontal = grid.ny * (grid.nx - 1)
+    vertical = (grid.ny - 1) * grid.nx
+    lengths = np.r_[np.full(horizontal, grid.dx), np.full(vertical, grid.dy)]
+    areas = np.r_[
+        np.broadcast_to(wy[:, None], (grid.ny, grid.nx - 1)).ravel(),
+        np.broadcast_to(wx[None, :], (grid.ny - 1, grid.nx)).ravel(),
+    ]
+    return lengths, areas
