@@ -61,3 +61,36 @@ def time_gate(samples, dt_s, interval_s, taper_fraction=0.2, time_offset_s=0.0):
     weights = np.zeros(len(values))
     weights[selected] = tukey(int(selected.sum()), taper_fraction)
     return values * weights if values.ndim == 1 else values * weights[:, None]
+
+
+class FourierMonitor:
+    def __init__(self, frequencies_hz, dt_s, channels=1):
+        from .core import finite_array
+
+        self.frequency = np.atleast_1d(finite_array(frequencies_hz, real=True))
+        if (
+            self.frequency.ndim != 1
+            or np.any(self.frequency < 0)
+            or dt_s <= 0
+            or not isinstance(channels, int)
+            or channels < 1
+        ):
+            raise ValueError("valid frequencies timestep and channel count required")
+        self.dt = dt_s
+        self.integral = np.zeros((len(self.frequency), channels), complex)
+        self.last_time = None
+        self.count = 0
+
+    def add(self, values, time_s, weight=1.0):
+        from .core import finite_array
+
+        value = np.atleast_1d(finite_array(values))
+        if value.shape != (self.integral.shape[1],) or not np.isfinite(time_s + weight) or weight < 0:
+            raise ValueError("matching finite monitor values/time and nonnegative quadrature weight required")
+        if self.last_time is not None and abs(time_s - self.last_time - self.dt) > 1e-9 * max(
+            self.dt, abs(time_s)
+        ):
+            raise ValueError("Fourier monitor requires consecutive uniform sample times")
+        self.integral += self.dt * weight * np.exp(-2j * np.pi * self.frequency[:, None] * time_s) * value
+        self.last_time = time_s
+        self.count += 1

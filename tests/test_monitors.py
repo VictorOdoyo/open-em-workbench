@@ -36,3 +36,17 @@ def test_time_gate_preserves_units_and_excludes_outside_events():
     gated = m.time_gate(values, 1e-12, (20e-12, 80e-12), 0)
     assert gated[50] == 1 and gated[0] == 0 and gated[-1] == 0
     assert np.max(gated) == 1
+
+
+def test_streaming_monitor_matches_offline_integral_with_staggered_origin():
+    dt = 1e-12
+    time = (np.arange(100) + 0.5) * dt
+    samples = np.column_stack((np.sin(2 * np.pi * 1e9 * time), np.cos(2 * np.pi * 3e9 * time)))
+    frequencies = [1e9, 2e9, 3e9]
+    monitor = m.FourierMonitor(frequencies, dt, 2)
+    for value, instant in zip(samples, time, strict=True):
+        monitor.add(value, instant)
+    expected = m.fourier_integral(samples, dt, frequencies, dt / 2)
+    assert np.allclose(monitor.integral, expected, rtol=1e-12, atol=1e-25)
+    with pytest.raises(ValueError, match="consecutive"):
+        monitor.add(samples[-1], time[-1] + 3 * dt)
