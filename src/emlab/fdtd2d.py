@@ -59,3 +59,63 @@ class TMz2D:
         self.ez[self.pec] = 0
         self.iteration += 1
         return self.ez
+
+
+class CPMLTMz(TMz2D):
+    def __init__(
+        self, grid, pml_cells=16, target_reflection=1e-8, kappa_max=3.0, alpha_max_s=None, **options
+    ):
+        from .core import C0
+        from .timedomain import pml_coefficients, pml_profile
+
+        super().__init__(grid, **options)
+        if (
+            not isinstance(pml_cells, int)
+            or isinstance(pml_cells, bool)
+            or not 2 <= pml_cells < (min(grid.nx, grid.ny) - 1) / 2
+        ):
+            raise ValueError("nonoverlapping PML with at least two cells per side required")
+        self.pml_cells = pml_cells
+        alpha_max_s = 0.05 * C0 / min(grid.dx, grid.dy) if alpha_max_s is None else alpha_max_s
+
+        def axis(nodes, spacing):
+            extent = (nodes - 1) * spacing
+            electric = np.arange(nodes) * spacing
+            magnetic = (np.arange(nodes - 1) + 0.5) * spacing
+            result = []
+            for coordinate in (electric, magnetic):
+                profile = pml_profile(
+                    coordinate,
+                    0,
+                    extent,
+                    pml_cells * spacing,
+                    target_reflection,
+                    kappa_max=kappa_max,
+                    alpha_max_s=alpha_max_s,
+                )
+                result.append(pml_coefficients(*profile, self.dt))
+            return result
+
+        self.xe, self.xh = axis(grid.nx, grid.dx)
+        self.ye, self.yh = axis(grid.ny, grid.dy)
+        self.psi_hx = np.zeros_like(self.hx)
+        self.psi_hy = np.zeros_like(self.hy)
+        self.psi_ex = np.zeros((grid.ny - 2, grid.nx - 2))
+        self.psi_ey = np.zeros_like(self.psi_ex)
+
+    def _gradients_e(self):
+        dy, dx = super()._gradients_e()
+        by, cy, ky = [value[:, None] for value in self.yh]
+        bx, cx, kx = [value[None, :] for value in self.xh]
+        self.psi_hx = by * self.psi_hx + cy * dy
+        self.psi_hy = bx * self.psi_hy + cx * dx
+        return dy / ky + self.psi_hx, dx / kx + self.psi_hy
+
+    def _curl_h(self):
+        dx = np.diff(self.hy, axis=1)[1:-1, :] / self.grid.dx
+        dy = np.diff(self.hx, axis=0)[:, 1:-1] / self.grid.dy
+        bx, cx, kx = [value[None, 1:-1] for value in self.xe]
+        by, cy, ky = [value[1:-1, None] for value in self.ye]
+        self.psi_ex = bx * self.psi_ex + cx * dx
+        self.psi_ey = by * self.psi_ey + cy * dy
+        return dx / kx + self.psi_ex - dy / ky - self.psi_ey

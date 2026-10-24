@@ -28,3 +28,21 @@ def test_embedded_pec_enforces_zero_electric_field_and_rejects_internal_sources(
     assert np.max(abs(state.ez)) == 0
     with pytest.raises(ValueError, match="PEC"):
         state.step(mask.astype(float))
+
+
+def test_two_dimensional_pml_absorbs_a_symmetric_outgoing_pulse():
+    from emlab.grid import Grid2D
+
+    grid = Grid2D(81, 81, 0.002, 0.002)
+    x, y = grid.mesh()
+    maxima = []
+    for cls, options in ((m.TMz2D, {}), (m.CPMLTMz, {"pml_cells": 12})):
+        state = cls(grid, **options)
+        state.ez[:] = np.exp(-((x - 0.08) ** 2 + (y - 0.08) ** 2) / 0.01**2)
+        state.ez[state.pec] = 0
+        for _ in range(350):
+            state.step()
+        maxima.append(np.linalg.norm(state.ez[15:-15, 15:-15]))
+        assert np.all(np.isfinite(state.ez))
+        assert np.max(abs(state.ez - state.ez.T)) < 1e-12
+    assert maxima[1] < 0.03 * maxima[0]
