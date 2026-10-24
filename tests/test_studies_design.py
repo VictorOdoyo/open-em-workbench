@@ -1,3 +1,5 @@
+import numpy as np
+
 from emlab import studies_design as m
 
 
@@ -13,3 +15,10 @@ def test_force_study_preserves_sign_and_converges():
     rows = result["tables"]["meshes"]
     assert rows[-1]["relative_error"] < rows[0]["relative_error"] / 10
     assert rows[-1]["relative_error"] < 2e-4
+
+
+def test_design_study_improves_energy_with_fixed_material_budget():
+    result = m.design()
+    assert result["summary"]["capacitance_gain_fraction"] > 0.05
+    assert result["summary"]["material_mean_defect"] < 1e-12
+    assert np.all(np.diff(result["arrays"]["energy_pj_m"]) >= 0)
