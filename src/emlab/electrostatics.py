@@ -151,3 +151,19 @@ def maxwell_stress(electric_x, electric_y, epsilon_r=1.0):
     result[..., 1, 1] = -result[..., 0, 0]
     result[..., 0, 1] = result[..., 1, 0] = EPS0 * epsilon_r * ex * ey
     return result
+
+
+def rectangular_force(grid, stress, index_bounds):
+    from .core import finite_array
+
+    tensor = finite_array(stress, real=True)
+    if tensor.shape != (*grid.shape, 2, 2) or len(index_bounds) != 4:
+        raise ValueError("stress tensor per node and y0/y1/x0/x1 index bounds required")
+    y0, y1, x0, x1 = index_bounds
+    if not 0 <= y0 < y1 < grid.ny or not 0 <= x0 < x1 < grid.nx:
+        raise ValueError("ordered contour indices inside the grid required")
+    right = np.trapezoid(tensor[y0 : y1 + 1, x1, :, 0], grid.y[y0 : y1 + 1], axis=0)
+    left = np.trapezoid(tensor[y0 : y1 + 1, x0, :, 0], grid.y[y0 : y1 + 1], axis=0)
+    top = np.trapezoid(tensor[y1, x0 : x1 + 1, :, 1], grid.x[x0 : x1 + 1], axis=0)
+    bottom = np.trapezoid(tensor[y0, x0 : x1 + 1, :, 1], grid.x[x0 : x1 + 1], axis=0)
+    return right - left + top - bottom

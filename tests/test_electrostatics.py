@@ -133,3 +133,23 @@ def test_maxwell_stress_has_tension_parallel_to_the_electric_field():
     assert stress[0, 0] == pytest.approx(6 * EPS0)
     assert stress[1, 1] == pytest.approx(-6 * EPS0)
     assert stress[0, 1] == 0
+
+
+def test_maxwell_contour_force_matches_independent_image_line_coulomb_force():
+    from emlab.core import EPS0
+    from emlab.grid import from_bounds
+    from emlab.statics import line_charge
+
+    grid = from_bounds((-0.1, 0.1), (0, 0.2), 201, 201)
+    x, y = grid.mesh()
+    points = np.stack((x, y), axis=-1)
+    valid = np.hypot(x, y - 0.1) > 1e-12
+    electric = np.zeros((*grid.shape, 2))
+    electric[valid] = (
+        line_charge(points[valid], 1e-9, (0, 0.1))[1] + line_charge(points[valid], -1e-9, (0, -0.1))[1]
+    )
+    stress = m.maxwell_stress(electric[..., 0], electric[..., 1])
+    force = m.rectangular_force(grid, stress, (50, 150, 50, 150))
+    exact = -1e-18 / (4 * np.pi * EPS0 * 0.1)
+    assert force[1] == pytest.approx(exact, rel=1e-4)
+    assert abs(force[0]) < abs(exact) * 1e-12
