@@ -69,3 +69,12 @@ def test_quarter_wave_coating_cancels_design_frequency_reflection():
     result = m.stack(3e9, [coating["epsilon_r"]], [coating["thickness_m"]], epsilon_substrate=4)
     assert result["R"] < 1e-25
     assert result["T"] == pytest.approx(1)
+
+
+def test_bragg_stopband_reflection_increases_with_pair_count():
+    results = []
+    for pairs in (1, 4):
+        epsilon, thickness = m.bragg_mirror(10e9, 3, 1.5, pairs)
+        results.append(m.stack(10e9, epsilon, thickness)["R"])
+    assert results[1] > results[0]
+    assert results[1] > 0.98

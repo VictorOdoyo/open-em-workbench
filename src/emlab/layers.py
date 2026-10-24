@@ -154,3 +154,19 @@ def antireflection(center_hz, index_incident, index_substrate):
         raise ValueError("positive design frequency and refractive indices required")
     index = np.sqrt(index_incident * index_substrate)
     return {"epsilon_r": float(index**2), "thickness_m": float(C0 / (4 * center_hz * index))}
+
+
+def bragg_mirror(center_hz, index_high, index_low, pairs=6):
+    from .core import C0
+
+    if (
+        min(center_hz, index_low) <= 0
+        or index_high <= index_low
+        or not isinstance(pairs, int)
+        or isinstance(pairs, bool)
+        or pairs < 1
+    ):
+        raise ValueError("positive ordered indices and Bragg pair count required")
+    epsilon = [index_high**2, index_low**2] * pairs
+    thickness = [C0 / (4 * center_hz * index_high), C0 / (4 * center_hz * index_low)] * pairs
+    return epsilon, thickness
