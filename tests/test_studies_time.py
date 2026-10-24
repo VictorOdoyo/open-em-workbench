@@ -19,3 +19,10 @@ def test_dispersive_time_domain_slab_is_passive_and_matches_causal_frequency_res
     assert summary["transmission_complex_relative_l2"] < 0.03
     assert summary["maximum_absorption_error"] < 0.03
     assert summary["minimum_measured_absorption"] > 0
+
+
+def test_cavity_study_matches_discrete_frequency_and_conserves_modified_energy():
+    summary = m.cavity()["summary"]
+    assert summary["relative_discrete_frequency_error"] < 1e-9
+    assert summary["maximum_relative_discrete_energy_drift"] < 1e-11
+    assert summary["continuum_frequency_relative_error"] < 0.003

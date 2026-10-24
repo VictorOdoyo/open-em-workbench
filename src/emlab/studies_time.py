@@ -243,3 +243,146 @@ def debye_slab(scale=1, seed=42):
         "Debye polarization is evolved by an auxiliary differential equation, not a fitted constant loss."
     )
     return result
+
+
+def _cavity_capture(scale, epsilon, conductivity):
+    from .core import C0, EPS0
+    from .fdtd2d import TMz2D, cavity_mode, conductive_cavity_pole, stored_energy
+    from .grid import from_bounds
+    from .modes import rectangular_cutoff
+    from .monitors import ringdown_pole
+
+    grid = from_bounds((0, 0.2), (0, 0.1), 40 * scale + 1, 30 * scale + 1)
+    state = TMz2D(grid, epsilon_r=epsilon, conductivity_s_m=conductivity)
+    cavity_mode(state, 1, 1)
+    initial = state.ez.copy()
+    initial_energy = stored_energy(state)
+    steps = 1400 * scale
+    signal, energy, invariant = [], [], []
+    for _ in range(steps):
+        state.step()
+        signal.append(state.ez[grid.ny // 3, grid.nx // 2])
+        energy.append(stored_energy(state) / initial_energy)
+        if conductivity == 0:
+            invariant.append(stored_energy(state, modified=True) / initial_energy)
+    signal = np.array(signal)
+    time = np.arange(1, steps + 1) * state.dt
+    fit = ringdown_pole(signal, state.dt)
+    roots = conductive_cavity_pole(grid, 1, 1, state.dt, epsilon, conductivity)
+    pole = roots[roots.imag > 0][0]
+    discrete_frequency = np.angle(pole) / (2 * np.pi * state.dt)
+    discrete_decay = max(0.0, -np.log(abs(pole)) / state.dt)
+    omega0 = 2 * np.pi * rectangular_cutoff(0.2, 0.1, 1, 1, "tm", epsilon)
+    alpha = conductivity / (2 * EPS0 * epsilon)
+    continuum_frequency = np.sqrt(omega0**2 - alpha**2) / (2 * np.pi)
+    fit_time = time - time[0]
+    design = np.exp(-fit["decay_rate_s"] * fit_time[:, None]) * np.column_stack(
+        (
+            np.cos(2 * np.pi * fit["frequency_hz"] * fit_time),
+            np.sin(2 * np.pi * fit["frequency_hz"] * fit_time),
+        )
+    )
+    coefficients = np.linalg.lstsq(design, signal, rcond=None)[0]
+    arrays = {
+        "time_ns": time * 1e9,
+        "electric_v_m": signal,
+        "fitted_v_m": design @ coefficients,
+        "energy_snapshot": energy,
+        "energy_reference": invariant if conductivity == 0 else np.exp(-2 * alpha * time),
+        "initial_e": initial,
+        "final_e": state.ez.copy(),
+        "final_hx": state.hx.copy(),
+        "final_hy": state.hy.copy(),
+    }
+    summary = {
+        "measured_frequency_hz": fit["frequency_hz"],
+        "continuum_frequency_hz": continuum_frequency,
+        "discrete_frequency_hz": discrete_frequency,
+        "relative_discrete_frequency_error": abs(fit["frequency_hz"] / discrete_frequency - 1),
+        "continuum_frequency_relative_error": abs(fit["frequency_hz"] / continuum_frequency - 1),
+        "quality_factor_measured": fit["quality_factor"],
+        "pole_fit_residual": fit["fit_residual"],
+    }
+    if conductivity == 0:
+        summary["maximum_relative_discrete_energy_drift"] = np.max(abs(np.array(invariant) - 1))
+    else:
+        summary["continuum_quality_factor"] = np.pi * continuum_frequency / alpha
+        summary["discrete_quality_factor"] = np.pi * discrete_frequency / discrete_decay
+        summary["relative_discrete_quality_error"] = abs(
+            fit["quality_factor"] / summary["discrete_quality_factor"] - 1
+        )
+    parameters = {
+        "width_m": 0.2,
+        "height_m": 0.1,
+        "grid_nodes": [grid.nx, grid.ny],
+        "epsilon_r": epsilon,
+        "mu_r": 1,
+        "conductivity_s_m": conductivity,
+        "mode_indices": [1, 1],
+        "initial_peak_e_v_m": 1,
+        "dt_s": state.dt,
+        "steps": steps,
+        "duration_s": steps * state.dt,
+        "boundary": "PEC",
+        "vacuum_speed_m_s": C0,
+    }
+    return grid, arrays, parameters, summary
+
+
+def _cavity_result(name, capture, seed):
+    from .results import curve, image, make
+
+    grid, arrays, parameters, summary = capture
+    lossless = parameters["conductivity_s_m"] == 0
+    label = "exact discrete invariant" if lossless else "continuous energy-decay envelope"
+    return make(
+        name,
+        {**parameters, "seed": seed},
+        summary,
+        arrays,
+        [
+            curve(
+                "Isolated cavity ringdown",
+                "time_ns",
+                [("electric_v_m", "Yee trace"), ("fitted_v_m", "isolated-pole fit")],
+                "Electric sample time (ns)",
+                "Ez (V/m)",
+            ),
+            curve(
+                "Stored E/H samples and independent energy reference",
+                "time_ns",
+                [("energy_snapshot", "staggered snapshot"), ("energy_reference", label)],
+                "Electric sample time (ns)",
+                "Energy / initial energy",
+            ),
+            image("Initial electric eigenfield", "initial_e", grid, "Ez (V/m)"),
+            image("Final electric field", "final_e", grid, "Ez (V/m)"),
+        ],
+        {
+            "trace": [
+                {
+                    "time_s": t * 1e-9,
+                    "electric_v_m": e,
+                    "energy_snapshot_normalized": u,
+                    "energy_reference_normalized": r,
+                }
+                for t, e, u, r in zip(
+                    arrays["time_ns"],
+                    arrays["electric_v_m"],
+                    arrays["energy_snapshot"],
+                    arrays["energy_reference"],
+                    strict=True,
+                )
+            ]
+        },
+        [
+            "Uniform rectangular PEC cavity initialized in one TM mode; no impressed current during ringdown.",
+            "E and H snapshots are staggered in time. Only the lossless modified leapfrog energy is an exact invariant.",
+            "The isolated-pole fit estimates one damped mode; it is not a generic multimode spectrum estimator.",
+            "Continuum, discrete-recurrence and measured resonance predictions are retained separately.",
+        ],
+    )
+
+
+def cavity(scale=1, seed=42):
+    return _cavity_result("fdtd-cavity", _cavity_capture(scale, 1.0, 0.0), seed)
