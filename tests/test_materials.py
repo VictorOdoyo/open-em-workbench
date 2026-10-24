@@ -24,3 +24,11 @@ def test_propagation_decays_and_satisfies_maxwell_impedance_relation():
     assert lossy.real > 0 and impedance.real > 0
     evanescent, _ = m.propagation(1e9, -4)
     assert evanescent.real > 0 and abs(evanescent.imag) < 1e-12
+
+
+def test_debye_limits_and_relaxation_loss_peak():
+    tau = 1e-9
+    values = m.debye([0, 1 / (2 * np.pi * tau), 1e20], 8, 2, tau)
+    assert values[0] == pytest.approx(8)
+    assert values[1] == pytest.approx(5 - 3j)
+    assert values[2].real == pytest.approx(2)

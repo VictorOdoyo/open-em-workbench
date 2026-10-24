@@ -25,3 +25,19 @@ def propagation(frequency_hz, epsilon_r=1, mu_r=1):
     gamma = 1j * (2 * np.pi * frequency / C0) * index
     impedance = ETA0 * mu / index
     return gamma, impedance
+
+
+def debye(frequency_hz, epsilon_static, epsilon_infinity, relaxation_s):
+    from .core import finite_array
+
+    frequency = finite_array(frequency_hz, real=True)
+    if (
+        np.any(frequency < 0)
+        or epsilon_infinity <= 0
+        or epsilon_static < epsilon_infinity
+        or relaxation_s <= 0
+    ):
+        raise ValueError("passive Debye parameters and nonnegative frequency required")
+    return epsilon_infinity + (epsilon_static - epsilon_infinity) / (
+        1 + 2j * np.pi * frequency * relaxation_s
+    )
