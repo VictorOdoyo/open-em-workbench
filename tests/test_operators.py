@@ -48,3 +48,13 @@ def test_stiffness_is_symmetric_positive_semidefinite_and_conservative():
     rng = np.random.default_rng(4)
     field = rng.normal(size=48)
     assert field @ operator @ field > 0
+
+
+def test_dirichlet_elimination_uses_boundary_load_without_row_replacement():
+    from scipy.sparse import csr_matrix
+
+    matrix = csr_matrix([[2.0, -1.0, 0], [-1, 2, -1], [0, -1, 2]])
+    reduced, load, free, base = m.eliminate_dirichlet(matrix, np.zeros(3), [True, False, True], [1, 0, 3])
+    assert reduced.toarray()[0, 0] == 2
+    assert load[0] == 4 and np.array_equal(free, [1])
+    assert np.array_equal(base, [1, 0, 3])

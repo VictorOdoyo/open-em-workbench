@@ -46,3 +46,21 @@ def stiffness(grid, coefficient=1):
     lengths, areas = edge_geometry(grid)
     conductance = harmonic_edges(grid, coefficient) * areas / lengths
     return (derivative.T @ diags(conductance) @ derivative).tocsr()
+
+
+def eliminate_dirichlet(matrix, rhs, fixed, values=0):
+    from .core import finite_array
+
+    fixed = np.asarray(fixed)
+    if fixed.dtype != bool or not np.any(fixed) or fixed.size != matrix.shape[0]:
+        raise ValueError("nonempty boolean Dirichlet mask matching operator required")
+    rhs = finite_array(rhs).reshape(-1)
+    if matrix.shape != (fixed.size, fixed.size) or rhs.shape != (fixed.size,):
+        raise ValueError("square operator and matching load required")
+    specified = np.broadcast_to(finite_array(values), fixed.shape).ravel()
+    mask = fixed.ravel()
+    free = np.flatnonzero(~mask)
+    base = np.zeros(fixed.size, dtype=np.result_type(matrix.dtype, rhs.dtype, specified.dtype))
+    base[mask] = specified[mask]
+    reduced = matrix[free][:, free].tocsr()
+    return reduced, (rhs - matrix @ base)[free], free, base
