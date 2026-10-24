@@ -81,3 +81,26 @@ def green_2d(frequency_hz, radius_m, epsilon_r=1.0):
     if min(frequency_hz, epsilon_r) <= 0 or np.any(radius <= 0):
         raise ValueError("positive frequency/material and nonsingular observation radius required")
     return -0.25j * hankel2(0, 2 * np.pi * frequency_hz / C0 * np.sqrt(epsilon_r) * radius)
+
+
+def plane_wave(grid, frequency_hz, epsilon_background=1.0, angle_radians=0.0):
+    from scipy.optimize import brentq
+
+    from .core import C0
+
+    if min(frequency_hz, epsilon_background) <= 0 or not np.isfinite(angle_radians):
+        raise ValueError("positive background frequency/dielectric and finite incidence angle required")
+    direction = np.array([np.cos(angle_radians), np.sin(angle_radians)])
+    spacing = np.array([grid.dx, grid.dy])
+    target = (2 * np.pi * frequency_hz / C0) ** 2 * epsilon_background
+    limit = min(np.pi / (spacing[abs(direction) > 1e-14] * abs(direction[abs(direction) > 1e-14])))
+
+    def relation(value):
+        return float(np.sum(4 * np.sin(value * direction * spacing / 2) ** 2 / spacing**2) - target)
+
+    if relation(limit) <= 0:
+        raise ValueError("incident frequency lies outside the discrete propagation band")
+    magnitude = brentq(relation, 0, limit, xtol=1e-13, rtol=1e-14)
+    wavevector = magnitude * direction
+    x, y = grid.mesh()
+    return np.exp(-1j * (wavevector[0] * x + wavevector[1] * y)), wavevector

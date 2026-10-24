@@ -64,3 +64,13 @@ def test_open_domain_current_field_matches_outgoing_hankel_green_function():
     radius = grid.x[locations]
     expected = -2j * np.pi * 1e9 * MU0 * 0.001 * m.green_2d(1e9, radius)
     assert relative_error(expected, field[50, locations]) < 0.015
+
+
+def test_oblique_grid_plane_wave_satisfies_interior_helmholtz_equation():
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((-0.1, 0.1), (-0.1, 0.1), 31, 27)
+    incident, _ = m.plane_wave(grid, 1e9, angle_radians=0.7)
+    model = m.operator(grid, 1e9, pml_cells=0)
+    residual = (model["matrix"] @ incident.ravel()).reshape(grid.shape)
+    assert np.max(abs(residual[1:-1, 1:-1])) < 1e-12
