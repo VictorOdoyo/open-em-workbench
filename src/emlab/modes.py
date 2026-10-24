@@ -213,3 +213,55 @@ def slab_te_modes(frequency_hz, thickness_m, core_index, cladding_index):
         )
         mode += 1
     return results
+
+
+def slab_fd(frequency_hz, coordinates_m, epsilon_r, cladding_index, count=4):
+    from scipy.sparse import diags
+    from scipy.sparse.linalg import eigsh
+
+    from .core import C0, finite_array
+
+    x = finite_array(coordinates_m, real=True, ndim=1)
+    epsilon = finite_array(epsilon_r, real=True, ndim=1)
+    if (
+        frequency_hz <= 0
+        or cladding_index <= 0
+        or len(x) < 5
+        or x.shape != epsilon.shape
+        or np.any(epsilon <= 0)
+        or not isinstance(count, int)
+        or not 1 <= count < len(x) - 2
+    ):
+        raise ValueError("positive frequency/dielectric and resolved one-dimensional grid required")
+    spacing = x[1] - x[0]
+    if spacing <= 0 or not np.allclose(np.diff(x), spacing, rtol=1e-10, atol=0):
+        raise ValueError("uniform increasing slab coordinates required")
+    k0 = 2 * np.pi * frequency_hz / C0
+    size = len(x) - 2
+    operator = diags(
+        [
+            np.ones(size - 1) / spacing**2,
+            -2 * np.ones(size) / spacing**2 + k0**2 * epsilon[1:-1],
+            np.ones(size - 1) / spacing**2,
+        ],
+        [-1, 0, 1],
+    ).tocsr()
+    values, vectors = eigsh(
+        operator,
+        k=count,
+        sigma=k0**2 * float(epsilon.max()),
+        which="LM",
+        v0=np.random.default_rng(8).normal(size=size),
+        tol=1e-11,
+    )
+    order = np.argsort(values)[::-1]
+    order = order[values[order] > (k0 * cladding_index) ** 2 * (1 + 1e-10)]
+    fields = np.zeros((len(order), len(x)))
+    for index, selected in enumerate(order):
+        field = vectors[:, selected] / np.sqrt(np.sum(vectors[:, selected] ** 2) * spacing)
+        fields[index, 1:-1] = field * np.sign(field[np.argmax(abs(field))])
+    return {
+        "beta_m": np.sqrt(values[order]),
+        "effective_index": np.sqrt(values[order]) / k0,
+        "fields": fields,
+    }

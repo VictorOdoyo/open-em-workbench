@@ -113,3 +113,13 @@ def test_symmetric_slab_fundamental_has_no_cutoff_and_is_bounded_by_material_ind
         assert modes[0]["mode"] == 0 and modes[0]["parity"] == "even"
         assert all(1.45 < row["effective_index"] < 1.5 for row in modes)
         assert all(row["decay_m"] > 0 for row in modes)
+
+
+def test_discrete_slab_effective_index_matches_transcendental_guidance_reference():
+    x = np.linspace(-16e-6, 16e-6, 1281)
+    epsilon = np.where(abs(x) < 1e-6, 1.5**2, 1.45**2)
+    epsilon[np.isclose(abs(x), 1e-6, rtol=0, atol=1e-15)] = (1.5**2 + 1.45**2) / 2
+    numerical = m.slab_fd(1e14, x, epsilon, 1.45)
+    exact = m.slab_te_modes(1e14, 2e-6, 1.5, 1.45)
+    assert len(numerical["effective_index"]) == len(exact) == 1
+    assert numerical["effective_index"][0] == pytest.approx(exact[0]["effective_index"], rel=3e-5)
