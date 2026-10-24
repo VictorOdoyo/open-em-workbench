@@ -183,3 +183,11 @@ def cavity_mode(state, mode_x=1, mode_y=1, amplitude_v_m=1.0):
     state.ez[state.pec] = 0
     state.hx.fill(0)
     state.hy.fill(0)
+
+
+def magnetic_nodes(state):
+    hx = np.zeros(state.grid.shape)
+    hy = np.zeros(state.grid.shape)
+    hx[1:-1] = (state.hx[:-1] + state.hx[1:]) / 2
+    hy[:, 1:-1] = (state.hy[:, :-1] + state.hy[:, 1:]) / 2
+    return hx, hy

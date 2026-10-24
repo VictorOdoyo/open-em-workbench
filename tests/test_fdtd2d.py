@@ -89,3 +89,15 @@ def test_cavity_time_trace_matches_independent_discrete_dispersion_prediction():
         2 * np.pi
     )
     assert measured["frequency_hz"] == pytest.approx(expected, rel=1e-10)
+
+
+def test_spatial_magnetic_collocation_recovers_affine_fields_at_interior_nodes():
+    from emlab.grid import Grid2D
+
+    grid = Grid2D(9, 7, 0.001, 0.002)
+    state = m.TMz2D(grid)
+    state.hx[:] = ((np.arange(grid.ny - 1) + 0.5) * grid.dy)[:, None]
+    state.hy[:] = ((np.arange(grid.nx - 1) + 0.5) * grid.dx)[None, :]
+    hx, hy = m.magnetic_nodes(state)
+    assert np.allclose(hx[1:-1, 1:-1], grid.mesh()[1][1:-1, 1:-1])
+    assert np.allclose(hy[1:-1, 1:-1], grid.mesh()[0][1:-1, 1:-1])
