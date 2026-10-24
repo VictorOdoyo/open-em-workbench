@@ -60,3 +60,24 @@ def pml_profile(
     kappa = 1 + (kappa_max - 1) * depth**order
     alpha = np.where(depth > 0, alpha_max_s * (1 - depth), 0)
     return sigma, kappa, alpha
+
+
+def pml_coefficients(sigma_rate, kappa, alpha_rate, dt_s):
+    from .core import finite_array
+
+    sigma, kappa, alpha = np.broadcast_arrays(
+        finite_array(sigma_rate, real=True),
+        finite_array(kappa, real=True),
+        finite_array(alpha_rate, real=True),
+    )
+    if dt_s <= 0 or np.any(sigma < 0) or np.any(kappa < 1) or np.any(alpha < 0):
+        raise ValueError("passive CPML rates and positive timestep required")
+    decay = np.exp(-(sigma / kappa + alpha) * dt_s)
+    denominator = kappa * (sigma + kappa * alpha)
+    memory = np.divide(
+        sigma * np.expm1(-(sigma / kappa + alpha) * dt_s),
+        denominator,
+        out=np.zeros_like(sigma),
+        where=denominator > 0,
+    )
+    return decay, memory, kappa

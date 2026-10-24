@@ -32,3 +32,12 @@ def test_pml_profile_is_symmetric_zero_interior_and_correctly_staggered():
     assert alpha[0] == 0 and alpha[5] > 0
     shifted = m.pml_profile((coordinate[:-1] + coordinate[1:]) / 2, 0, 1, 0.1)[0]
     assert shifted[0] < sigma[0]
+
+
+def test_cpml_discrete_memory_approaches_continuous_coordinate_stretch():
+    sigma, kappa, alpha, omega, dt = 2e8, 2.0, 3e7, 1e9, 1e-14
+    decay, memory, _ = m.pml_coefficients(sigma, kappa, alpha, dt)
+    discrete = 1 / kappa + memory / (1 - decay * np.exp(-1j * omega * dt))
+    continuous = 1 / (kappa + sigma / (alpha + 1j * omega))
+    assert discrete == pytest.approx(continuous, rel=1e-5)
+    assert m.pml_coefficients(0, 1, 0, dt)[:2] == (1, 0)
