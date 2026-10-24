@@ -31,3 +31,23 @@ def cascade(*matrices):
             raise ValueError("two by two chain matrices required")
         result = result @ matrix
     return result
+
+
+def abcd_to_s(matrix, reference=(50.0, 50.0)):
+    from .core import finite_array
+
+    matrix = finite_array(matrix)
+    z = finite_array(reference, real=True)
+    if matrix.shape[-2:] != (2, 2) or z.shape != (2,) or np.any(z <= 0):
+        raise ValueError("chain matrices and two positive real port impedances required")
+    a, b, c, d = matrix[..., 0, 0], matrix[..., 0, 1], matrix[..., 1, 0], matrix[..., 1, 1]
+    denominator = a * z[1] + b + c * z.prod() + d * z[0]
+    if np.any(abs(denominator) == 0):
+        raise ValueError("singular scattering conversion")
+    factor = 2 * np.sqrt(z.prod())
+    result = np.empty(matrix.shape, complex)
+    result[..., 0, 0] = (a * z[1] + b - c * z.prod() - d * z[0]) / denominator
+    result[..., 1, 1] = (-a * z[1] + b - c * z.prod() + d * z[0]) / denominator
+    result[..., 1, 0] = factor / denominator
+    result[..., 0, 1] = factor * (a * d - b * c) / denominator
+    return result
