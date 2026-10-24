@@ -116,3 +116,11 @@ def test_magnetostatic_vector_potential_matches_manufactured_current_and_energy(
     assert relative_error(exact, result["az_wb_m"]) < 0.001
     work = 0.5 * np.sum(current * result["az_wb_m"] * dual_weights(grid))
     assert result["energy_j_m"] == pytest.approx(work, rel=1e-12)
+
+
+def test_coaxial_coils_attract_with_parallel_currents_and_repel_when_reversed():
+    force = m.coaxial_force(0.1, 0.08, 0.05, 3, 2)
+    assert force < 0
+    assert m.coaxial_force(0.1, 0.08, 0.05, 3, -2) == pytest.approx(-force)
+    finer = m.coaxial_force(0.1, 0.08, 0.05, 3, 2, step_m=1e-6)
+    assert force == pytest.approx(finer, rel=1e-6)

@@ -198,3 +198,18 @@ def solve_az(grid, current_density_a_m2, mu_r=1.0, boundary_potential=0.0):
         "energy_j_m": energy(grid, result["potential"], 1 / mu) / (EPS0 * MU0),
         "residual": result["residual"],
     }
+
+
+def coaxial_force(
+    radius_first_m, radius_second_m, separation_m, current_first_a, current_second_a, step_m=None
+):
+    if not np.all(np.isfinite([current_first_a, current_second_a])):
+        raise ValueError("finite coil currents required")
+    step = 1e-4 * min(radius_first_m, radius_second_m) if step_m is None else step_m
+    if step <= 0:
+        raise ValueError("positive force differencing step required")
+    derivative = (
+        coaxial_mutual(radius_first_m, radius_second_m, separation_m + step)
+        - coaxial_mutual(radius_first_m, radius_second_m, separation_m - step)
+    ) / (2 * step)
+    return current_first_a * current_second_a * derivative
