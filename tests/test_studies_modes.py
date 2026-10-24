@@ -1,3 +1,5 @@
+import numpy as np
+
 from emlab import studies_modes as m
 
 
@@ -12,3 +14,10 @@ def test_slab_guidance_study_retains_a_resolved_bound_mode_and_reports_actual_er
     result = m.slab_guidance()
     assert result["summary"]["finest_relative_error"] < 3e-5
     assert all(row["guided_modes_found"] == 1 for row in result["tables"]["meshes"])
+
+
+def test_perturbation_study_reports_downward_dielectric_frequency_shifts():
+    result = m.mode_perturbation()
+    assert np.all(result["arrays"]["measured_percent"][1:] < 0)
+    assert result["summary"]["first_nonzero_prediction_relative_error"] < 0.05
+    assert result["summary"]["largest_absolute_fractional_shift_error"] > 0

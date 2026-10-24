@@ -167,3 +167,68 @@ def slab_guidance(scale=1, seed=42):
             "Core-interface nodes use arithmetic half-cell permittivity for tangential electric fields.",
         ],
     )
+
+
+def mode_perturbation(scale=1, seed=42):
+    from .geometry import rectangle
+    from .grid import from_bounds
+    from .modes import cavity_modes, dielectric_shift
+    from .results import curve, image, make
+
+    grid = from_bounds((0, 0.02), (0, 0.012), 40 * scale + 1, 32 * scale + 1)
+    patch = rectangle(grid, (0.007, 0.013), (0.004, 0.008)).astype(float)
+    base = cavity_modes(grid, count=1)
+    initial_frequency = base["cutoff_hz"][0]
+    strengths = np.linspace(0, 0.5, 11)
+    measured, predicted = [], []
+    for strength in strengths:
+        changed = cavity_modes(grid, 1 + strength * patch, count=1)
+        measured.append(changed["cutoff_hz"][0] / initial_frequency - 1)
+        predicted.append(dielectric_shift(grid, base["fields"][0], 1, strength * patch))
+    measured, predicted = np.array(measured), np.array(predicted)
+    return make(
+        "mode-perturbation",
+        {
+            "domain_m": [0.02, 0.012],
+            "grid_nodes": [grid.nx, grid.ny],
+            "baseline_epsilon_r": 1,
+            "maximum_patch_delta_epsilon": 0.5,
+            "seed": seed,
+        },
+        {
+            "baseline_frequency_hz": initial_frequency,
+            "first_nonzero_prediction_relative_error": abs(predicted[1] / measured[1] - 1),
+            "largest_absolute_fractional_shift_error": np.max(abs(predicted - measured)),
+        },
+        {
+            "strength": strengths,
+            "measured_percent": measured * 100,
+            "predicted_percent": predicted * 100,
+            "patch": patch * 0.5,
+            "mode": base["fields"][0] / np.max(abs(base["fields"][0])),
+        },
+        [
+            curve(
+                "First-order shifts have a finite range of validity",
+                "strength",
+                [
+                    ("measured_percent", "resolved eigenproblem"),
+                    ("predicted_percent", "first-order prediction"),
+                ],
+                "Patch permittivity increment",
+                "Frequency shift (%)",
+            ),
+            image("Maximum dielectric perturbation", "patch", grid, "Relative permittivity increment"),
+            image("Unperturbed electric mode", "mode", grid, "Normalized Ez"),
+        ],
+        {
+            "perturbations": [
+                {"delta_epsilon": s, "measured_shift": a, "first_order_shift": b}
+                for s, a, b in zip(strengths, measured, predicted, strict=True)
+            ]
+        },
+        [
+            "Perturbation theory uses the unperturbed mode and is only first order.",
+            "The full eigenproblem is solved separately at each material contrast.",
+        ],
+    )
