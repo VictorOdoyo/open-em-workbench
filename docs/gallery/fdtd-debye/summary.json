@@ -1,0 +1,9 @@
+{
+  "final_device_peak_e_v_m": 0.04844429477765988,
+  "maximum_absorption_error": 0.0006865168596618121,
+  "maximum_discrete_continuum_material_difference": 0.0004398656163311614,
+  "minimum_measured_absorption": 0.6933702604064218,
+  "reflection_complex_relative_l2": 0.0010180373717244117,
+  "transmission_complex_relative_l2": 0.0016396916725596974,
+  "valid_frequency_points": 201
+}

@@ -1,0 +1,7 @@
+{
+  "final_device_peak_e_v_m": 0.055663564201957,
+  "maximum_absorption_error": 0.0015265855870097989,
+  "reflection_complex_relative_l2": 0.004371620720684954,
+  "transmission_complex_relative_l2": 0.003337956230704554,
+  "valid_frequency_points": 201
+}

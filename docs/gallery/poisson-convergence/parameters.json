@@ -1,0 +1,14 @@
+{
+  "domain_m": [
+    1,
+    1
+  ],
+  "epsilon_r": 3,
+  "mesh_nodes": [
+    17,
+    33,
+    65
+  ],
+  "seed": 42,
+  "source": "manufactured sin(pi x) sin(pi y)"
+}

@@ -1,0 +1,11 @@
+{
+  "epsilon_r": 2.25,
+  "inner_radius_m": 0.01,
+  "mesh_nodes": [
+    41,
+    65,
+    97
+  ],
+  "outer_radius_m": 0.03,
+  "seed": 42
+}

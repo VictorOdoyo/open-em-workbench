@@ -1,0 +1,16 @@
+{
+  "dielectrics": [
+    2,
+    8
+  ],
+  "domain_m": [
+    0.04,
+    0.01
+  ],
+  "grid_nodes": [
+    81,
+    25
+  ],
+  "seed": 42,
+  "voltage_v": 1
+}

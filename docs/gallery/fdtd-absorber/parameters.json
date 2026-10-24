@@ -1,0 +1,17 @@
+{
+  "dt_s": 3.168858904382444e-12,
+  "initial_packet_center_m": 0.2,
+  "late_window_s": [
+    6.5e-10,
+    1.35e-09
+  ],
+  "nodes": 401,
+  "packet_width_m": 0.015,
+  "pml_alpha_max_s": 14989622900.0,
+  "pml_kappa_max": 3,
+  "pml_target_amplitude_reflection": 1e-08,
+  "probe_position_m": 0.25,
+  "seed": 42,
+  "spacing_m": 0.001,
+  "steps": 500
+}

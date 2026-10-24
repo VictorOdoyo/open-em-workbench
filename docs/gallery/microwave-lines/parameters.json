@@ -1,0 +1,12 @@
+{
+  "coax_inner_m": 0.001,
+  "coax_outer_m": 0.003,
+  "conductivity_s_m": 58000000.0,
+  "epsilon_r": 2.25,
+  "length_m": 1.0,
+  "loss_tangent": 0.002,
+  "matching_center_hz": 1000000000.0,
+  "matching_length_m": 0.0749481145,
+  "port_reference_ohm": 50,
+  "seed": 42
+}

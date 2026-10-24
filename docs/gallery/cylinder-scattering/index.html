@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>cylinder-scattering | Open EM Workbench</title>
+<style>body{font:16px system-ui;max-width:1300px;margin:3rem auto;padding:0 1rem;color:#172033}
+img{width:100%;height:auto}table{border-collapse:collapse;width:100%}td,th{padding:.55rem;border-bottom:1px solid #dce1ea;text-align:left}
+code{overflow-wrap:anywhere}a{color:#164ac4}</style>
+<h1>cylinder-scattering</h1><p>Reproducible numerical electromagnetics. Units and field components are printed on the
+scientific axes. Peak phasors use exp(+i omega t); outgoing waves use exp(-i k r).</p>
+<p><a href="fields.npz">Sealed numeric archive</a> | <a href="summary.csv">Summary CSV</a> |
+<a href="parameters.json">Physical parameters</a> | <a href="configuration.json">Run request</a> |
+<a href="provenance.json">Source and environment</a></p>
+<img src="figure.png" alt="Scientific curves and electromagnetic field maps for cylinder-scattering">
+<table><tr><th>analytic_optical_theorem_defect_m</th><td>0.0</td></tr><tr><th>analytic_scattering_width_m</th><td>0.2584751172663945</td></tr><tr><th>finest_complex_relative_l2</th><td>0.02938546748985499</td></tr><tr><th>maximum_solver_residual</th><td>3.949248077162516e-15</td></tr></table><h2>Data tables</h2><ul><li><a href="table_angular.csv">angular CSV</a></li><li><a href="table_meshes.csv">meshes CSV</a></li></ul>
+<h2>Assumptions and interpretation</h2><ul><li>The cylinder is infinitely long and perfectly conducting; scalar TMz polarization is used.</li><li>Rasterized PEC boundaries converge separately from the centered-difference bulk stencil.</li><li>The plotted angular width comes from the analytic series, not a claimed numerical near-to-far transform.</li><li>Numerical plane waves satisfy grid dispersion; the reference uses continuum dispersion.</li></ul>
+<p>These are simulations, not hardware measurements. Mesh, boundary, truncation and statistical
+uncertainty require distinct convergence checks. Singular or unilluminated data use explicit masks.</p>
+<p>Source revision: <code>255b9ec965941d1fc97a04b9f7e2101e959fbeca</code>.
+Dirty checkout: <code>False</code>.
+Configuration SHA-256: <code>b146309bb75447627acd0cdf111e0a0ac2623ad0f6e500778d63516de04bb40b</code>.</p>
+<p>Replay preserves original source and parameter provenance. SHA-256 manifests detect changed bytes;
+they are unsigned integrity records, not certificates of physical validity.</p></html>

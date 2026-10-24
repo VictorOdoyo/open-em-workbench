@@ -1,0 +1,9 @@
+{
+  "center_hz": 10000000000.0,
+  "epsilon_incident": 1,
+  "epsilon_substrate": 4,
+  "film_epsilon_r": 2.0000000000000004,
+  "film_thickness_m": 0.00529963200000958,
+  "incident_peak_e_v_m": 1,
+  "seed": 42
+}

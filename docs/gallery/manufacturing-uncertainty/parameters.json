@@ -1,0 +1,30 @@
+{
+  "bootstrap_resamples": 2000,
+  "correlation_matrix": [
+    [
+      1.0,
+      0.3,
+      0.0
+    ],
+    [
+      0.3,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "nominal_epsilon_r": 2.25,
+  "nominal_inner_radius_m": 0.001,
+  "nominal_outer_radius_m": 0.003,
+  "parameter_standard_deviations": [
+    1e-05,
+    1.5e-05,
+    0.03
+  ],
+  "sample_count": 512,
+  "seed": 42
+}

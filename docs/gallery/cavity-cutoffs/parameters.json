@@ -1,0 +1,12 @@
+{
+  "epsilon_r": 1,
+  "grid_nodes": [
+    65,
+    49
+  ],
+  "height_m": 0.012,
+  "modes_per_family": 4,
+  "mu_r": 1,
+  "seed": 42,
+  "width_m": 0.02
+}

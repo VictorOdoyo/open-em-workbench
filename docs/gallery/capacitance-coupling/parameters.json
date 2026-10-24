@@ -1,0 +1,17 @@
+{
+  "domain_m": [
+    0.04,
+    0.03
+  ],
+  "driven_voltage_v": [
+    0,
+    1
+  ],
+  "epsilon_r": 3,
+  "floating_charge_c_m": 0,
+  "grid_nodes": [
+    81,
+    61
+  ],
+  "seed": 42
+}

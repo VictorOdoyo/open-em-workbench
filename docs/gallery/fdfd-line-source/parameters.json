@@ -1,0 +1,17 @@
+{
+  "domain_m": [
+    0.4,
+    0.4
+  ],
+  "frequency_hz": 1000000000.0,
+  "grid_nodes": [
+    101,
+    101
+  ],
+  "line_current_a": 0.001,
+  "pml_alpha_s": 0,
+  "pml_cells": 14,
+  "pml_kappa": 1,
+  "pml_target_reflection": 1e-08,
+  "seed": 42
+}

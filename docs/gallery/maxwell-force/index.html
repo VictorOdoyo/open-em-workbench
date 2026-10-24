@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>maxwell-force | Open EM Workbench</title>
+<style>body{font:16px system-ui;max-width:1300px;margin:3rem auto;padding:0 1rem;color:#172033}
+img{width:100%;height:auto}table{border-collapse:collapse;width:100%}td,th{padding:.55rem;border-bottom:1px solid #dce1ea;text-align:left}
+code{overflow-wrap:anywhere}a{color:#164ac4}</style>
+<h1>maxwell-force</h1><p>Reproducible numerical electromagnetics. Units and field components are printed on the
+scientific axes. Peak phasors use exp(+i omega t); outgoing waves use exp(-i k r).</p>
+<p><a href="fields.npz">Sealed numeric archive</a> | <a href="summary.csv">Summary CSV</a> |
+<a href="parameters.json">Physical parameters</a> | <a href="configuration.json">Run request</a> |
+<a href="provenance.json">Source and environment</a></p>
+<img src="figure.png" alt="Scientific curves and electromagnetic field maps for maxwell-force">
+<table><tr><th>finest_force_y_n_m</th><td>-8.987214337992762e-08</td></tr><tr><th>finest_relative_error</th><td>3.7546174619174984e-05</td></tr><tr><th>reference_force_y_n_m</th><td>-8.987551786181525e-08</td></tr></table><h2>Data tables</h2><ul><li><a href="table_meshes.csv">meshes CSV</a></li></ul>
+<h2>Assumptions and interpretation</h2><ul><li>The field is analytic; this isolates closed-contour stress quadrature error.</li><li>The singular filament node is masked and never lies on the integration contour.</li><li>Force is per unit out-of-plane length.</li></ul>
+<p>These are simulations, not hardware measurements. Mesh, boundary, truncation and statistical
+uncertainty require distinct convergence checks. Singular or unilluminated data use explicit masks.</p>
+<p>Source revision: <code>255b9ec965941d1fc97a04b9f7e2101e959fbeca</code>.
+Dirty checkout: <code>False</code>.
+Configuration SHA-256: <code>a54e7b9d53852d20a6b89f724c65001fbecfdf6d734dc7e8a159a11c8c86cea8</code>.</p>
+<p>Replay preserves original source and parameter provenance. SHA-256 manifests detect changed bytes;
+they are unsigned integrity records, not certificates of physical validity.</p></html>

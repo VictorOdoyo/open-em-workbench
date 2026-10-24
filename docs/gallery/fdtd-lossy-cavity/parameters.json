@@ -1,0 +1,22 @@
+{
+  "boundary": "PEC",
+  "conductivity_s_m": 0.01,
+  "dt_s": 1.2429287222514106e-11,
+  "duration_s": 1.7401002111519748e-08,
+  "epsilon_r": 2.0,
+  "grid_nodes": [
+    41,
+    31
+  ],
+  "height_m": 0.1,
+  "initial_peak_e_v_m": 1,
+  "mode_indices": [
+    1,
+    1
+  ],
+  "mu_r": 1,
+  "seed": 42,
+  "steps": 1400,
+  "vacuum_speed_m_s": 299792458.0,
+  "width_m": 0.2
+}

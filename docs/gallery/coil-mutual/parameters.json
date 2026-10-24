@@ -1,0 +1,18 @@
+{
+  "currents_a": [
+    1,
+    1
+  ],
+  "excluded_filament_radius_m": 0.004,
+  "quadrature_order": 4,
+  "radius_first_m": 0.1,
+  "radius_second_m": 0.08,
+  "seed": 42,
+  "segments": [
+    16,
+    32,
+    64,
+    128
+  ],
+  "separation_m": 0.05
+}

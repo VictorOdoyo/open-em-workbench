@@ -1,0 +1,10 @@
+{
+  "continuum_frequency_hz": 1675890788.0743763,
+  "continuum_frequency_relative_error": 6.012668713073488e-05,
+  "discrete_frequency_hz": 1675790022.3131878,
+  "maximum_relative_discrete_energy_drift": 5.551115123125783e-16,
+  "measured_frequency_hz": 1675790022.3132966,
+  "pole_fit_residual": 2.8214997651618717e-15,
+  "quality_factor_measured": null,
+  "relative_discrete_frequency_error": 6.483702463810914e-14
+}

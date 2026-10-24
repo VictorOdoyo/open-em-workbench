@@ -1,0 +1,28 @@
+{
+  "boundary_az_wb_m": 0,
+  "current_centers_m": [
+    [
+      -0.02,
+      0
+    ],
+    [
+      0.02,
+      0
+    ]
+  ],
+  "currents_a": [
+    1,
+    -1
+  ],
+  "domain_m": [
+    0.12,
+    0.08
+  ],
+  "grid_nodes": [
+    81,
+    61
+  ],
+  "mu_r": 1,
+  "seed": 42,
+  "wire_radius_m": 0.006
+}

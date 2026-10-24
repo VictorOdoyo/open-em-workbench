@@ -1,0 +1,19 @@
+{
+  "bounds_epsilon_r": [
+    1,
+    4
+  ],
+  "domain_m": [
+    0.04,
+    0.03
+  ],
+  "grid_nodes": [
+    41,
+    31
+  ],
+  "initial_epsilon_r": 2.5,
+  "initial_step": 0.5,
+  "maximum_iterations": 16,
+  "seed": 42,
+  "voltage_v": 1
+}

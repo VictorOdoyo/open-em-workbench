@@ -1,0 +1,16 @@
+{
+  "cladding_index": 1.45,
+  "core_index": 1.5,
+  "core_thickness_m": 2e-06,
+  "domain_bounds_m": [
+    -1.6e-05,
+    1.6e-05
+  ],
+  "frequency_hz": 100000000000000.0,
+  "mesh_nodes": [
+    321,
+    641,
+    1281
+  ],
+  "seed": 42
+}

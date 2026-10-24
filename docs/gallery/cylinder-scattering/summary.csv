@@ -1,0 +1,5 @@
+metric,value
+analytic_optical_theorem_defect_m,0.0
+analytic_scattering_width_m,0.2584751172663945
+finest_complex_relative_l2,0.02938546748985499
+maximum_solver_residual,3.949248077162516e-15

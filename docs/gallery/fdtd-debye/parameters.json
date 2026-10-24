@@ -1,0 +1,29 @@
+{
+  "dt_s": 3.168858904382444e-12,
+  "epsilon_infinity": 2,
+  "epsilon_static": 6,
+  "nodes": 601,
+  "pml_alpha_max_s": 14989622900.0,
+  "pml_cells_each_side": 40,
+  "pml_kappa_max": 3,
+  "pml_polynomial_order": 3,
+  "pml_target_amplitude_reflection": 1e-08,
+  "probe_positions_m": [
+    0.2,
+    0.45
+  ],
+  "pulse_carrier_hz": 2000000000.0,
+  "pulse_center_s": 1.5e-09,
+  "pulse_width_s": 2.5e-10,
+  "relaxation_s": 1.2e-10,
+  "seed": 42,
+  "sheet_current_peak_a_m": 1.0,
+  "slab_end_m": 0.35000000000000003,
+  "slab_start_m": 0.25,
+  "snapshot_samples_per_fastest_analyzed_period": 8,
+  "source_position_m": 0.1,
+  "spacing_m": 0.001,
+  "spectrum_floor_relative": 0.001,
+  "spectrum_points": 201,
+  "steps": 3787
+}

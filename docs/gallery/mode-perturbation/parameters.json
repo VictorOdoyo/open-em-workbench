@@ -1,0 +1,13 @@
+{
+  "baseline_epsilon_r": 1,
+  "domain_m": [
+    0.02,
+    0.012
+  ],
+  "grid_nodes": [
+    41,
+    33
+  ],
+  "maximum_patch_delta_epsilon": 0.5,
+  "seed": 42
+}

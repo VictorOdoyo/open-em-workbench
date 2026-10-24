@@ -1,0 +1,19 @@
+{
+  "domain_m": [
+    0.4,
+    0.4
+  ],
+  "frequency_hz": 800000000.0,
+  "harmonic_maximum_order": 13,
+  "incidence_direction": "+x",
+  "incident_peak_e_v_m": 1,
+  "mesh_nodes": [
+    81,
+    121,
+    161
+  ],
+  "pml_physical_thickness_m": 0.056,
+  "probe_radius_m": 0.09,
+  "radius_m": 0.04,
+  "seed": 42
+}

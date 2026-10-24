@@ -1,0 +1,12 @@
+{
+  "configuration.json": "317e4c40f926f6887b1f06c4df4dd04c2977836575e8eb027dc9a02a155b1a02",
+  "fields.npz": "ec0a580e0294b27ce35b963f2d957365bf77949b441dbe6948805a37ffb96bf7",
+  "figure.png": "07026ab0fae9a92faa2d1f02805f22808768fde1f782fd9b805d72e914755aee",
+  "index.html": "6e04147dd9a62e69793e8d1d973006ece82c6bcf1b53c13cdcb15a7a5b434e14",
+  "parameters.json": "9f487b7498ed773e616ac04efacc3ba41f4707456c32dd058a67a0e69999cfbb",
+  "provenance.json": "a52ca6feb7bfa127e73b4e03b498c9352764f9b11d0182ef0b6c1ac393d9dc32",
+  "summary.csv": "8c26c7caba0530c262df951a00dfefe9b39d564785a8787f37ceedb88b61b29d",
+  "summary.json": "f8dd8717b103b2146041fab0c37d9740ef9e076f682d65f1ee101e342510d8b1",
+  "table_capacitance.csv": "4c219094300c63991639e8090dad9437ee07afda41c3e261c3194b45ca4e8aad",
+  "table_terminals.csv": "63b3a962cfcccab4ead22051563e5e317f8cffb86a0aa936251e5bc62236715d"
+}

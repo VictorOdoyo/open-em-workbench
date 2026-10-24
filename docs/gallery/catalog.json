@@ -1,0 +1,658 @@
+{
+  "experiments": [
+    {
+      "archive": "poisson-convergence/fields.npz",
+      "case": "poisson-convergence",
+      "configuration": {
+        "case": "poisson-convergence",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "b15b94cfdfb3ba3ea59bd3d58380de1be9981fca6642866a0ea8460d307b61ac",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "b253f77ed8595c946a81b7c717c3a3bb77ea4cd8a896d125c31421b4be9d409b",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "finest_relative_error": 0.0002008218097219554,
+        "maximum_solver_residual": 1.4314637437097365e-13,
+        "observed_order": 2.0013043882252703
+      }
+    },
+    {
+      "archive": "dielectric-interface/fields.npz",
+      "case": "dielectric-interface",
+      "configuration": {
+        "case": "dielectric-interface",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "e59b226233905c2eb633758bab5ce8113ed3da0ac31b62e88bd884efb5cdcc96",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "462b092a6294495d4f0133753844f72db5f6d43539fa47aa341cada2617c458a",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "charge_capacitance_f_m": 7.0306206005258455e-12,
+        "discrete_series_reference_f_m": 7.0306206005275895e-12,
+        "energy_capacitance_f_m": 7.030620600525727e-12,
+        "relative_displacement_variation": 5.08265265510224e-13
+      }
+    },
+    {
+      "archive": "capacitance-coupling/fields.npz",
+      "case": "capacitance-coupling",
+      "configuration": {
+        "case": "capacitance-coupling",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "b288f9353822598d52842824f6955a6906c0af407c5be9274d7dd263ed5dee45",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "7fc5c07f632905e605cd2a4ca2968312cf113c91a552d198bb0f7cdd91449a86",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "field_energy_j_m": 4.7785249891818594e-11,
+        "floating_charge_c_m": 8.395935382086134e-28,
+        "floating_voltage_v": 0.20758881224969894,
+        "relative_reciprocity_defect": 8.770587397771957e-15,
+        "terminal_energy_j_m": 4.778524989181823e-11
+      }
+    },
+    {
+      "archive": "coax-convergence/fields.npz",
+      "case": "coax-convergence",
+      "configuration": {
+        "case": "coax-convergence",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "83902e1fc7fe8c9d7e1e1b3f96119df0d4c3ee252bda4b7e27bc8e7e8ba4e5ab",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "484f0ddb5a3e015639bc3e54101a02442decf034c60b4cbf10f07d8d4caff7e7",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "analytic_capacitance_f_m": 1.1393749424950568e-10,
+        "finest_capacitance_f_m": 1.1046758408731849e-10,
+        "finest_relative_error": 0.030454506526083724
+      }
+    },
+    {
+      "archive": "multilayer-coating/fields.npz",
+      "case": "multilayer-coating",
+      "configuration": {
+        "case": "multilayer-coating",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "23786919fa0fce84d36d6ce8dd0d869aec1476e7140b9fe40042c10c029b1f51",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "52f26ff063af540c654fb5ef618808ea40ab472cb701f3a78a2820f12e011c5c",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "design_reflectance": 1.972797437595419e-32,
+        "maximum_power_balance_defect": 1.1102230246251565e-15
+      }
+    },
+    {
+      "archive": "bragg-mirror/fields.npz",
+      "case": "bragg-mirror",
+      "configuration": {
+        "case": "bragg-mirror",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "fa482ea3dba1f1f3004fe9f1e750a80c10b024c96a00095944dac0e81eca03c2",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "cf88db1583329c6c42c15aa8f59b06001e7ab4b109adfc7190fa2bb99ce259a8",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "design_reflectance": 0.9990239141625927,
+        "design_transmittance": 0.0009760858374079533,
+        "maximum_lossless_balance_defect": 1.2878587085651816e-14
+      }
+    },
+    {
+      "archive": "absorbing-stack/fields.npz",
+      "case": "absorbing-stack",
+      "configuration": {
+        "case": "absorbing-stack",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "e02b85fa83b209f3078538444b51a067d13d818bda46a3c0c877d4fa1729d7bd",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "0e0ea10c8832f721d05202c1d4bbeed06f89fe453eab972d17e2e0022ea5621e",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "layer_absorption_sum": 0.6813766940379626,
+        "maximum_joule_flux_defect": 1.4352519661642305e-07,
+        "total_absorption": 0.6813766940379622
+      }
+    },
+    {
+      "archive": "microwave-lines/fields.npz",
+      "case": "microwave-lines",
+      "configuration": {
+        "case": "microwave-lines",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "bf279aa4d11562d29d38be0d320d25ecfe76897304b77c820c01952347151be5",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "ff118fbafad7bb15a8109a4d59db7d2634b84e314e65a46e66bba4001c871877",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "design_matching_reflectance": 1.0030728437738213e-32,
+        "median_group_delay_s": 5.003400222500842e-09,
+        "minimum_passivity_margin": 0.016461809524229043
+      }
+    },
+    {
+      "archive": "cavity-cutoffs/fields.npz",
+      "case": "cavity-cutoffs",
+      "configuration": {
+        "case": "cavity-cutoffs",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "6b59b7f7989be8a83f20500f350f077f4e003baf94c31faa476f324e1f891433",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "caa265f348c1211af68b074b3c383f4fa5f270a8342ed70fb2a77568e374c9ef",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "maximum_eigen_residual": 4.294837189031696e-12,
+        "maximum_relative_cutoff_error": 0.0007323377442793877
+      }
+    },
+    {
+      "archive": "slab-guidance/fields.npz",
+      "case": "slab-guidance",
+      "configuration": {
+        "case": "slab-guidance",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "97f6c8759612731e9099de981fdb3330a72b2348f5234788fef671d9308d59e7",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "cdb6c9cca1b49f62215fd26852571228177e7dca5b8c3e0af90b26fd238fc2d0",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "analytic_effective_index": 1.4682104325991692,
+        "finest_effective_index": 1.4682098525011693,
+        "finest_relative_error": 3.951054883266636e-07
+      }
+    },
+    {
+      "archive": "mode-perturbation/fields.npz",
+      "case": "mode-perturbation",
+      "configuration": {
+        "case": "mode-perturbation",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "d1d3103a67ff3443c2e445e45272f3f44831a7b8760949c44234868079645fee",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "1c6620db41f1df7f214817babd6f389a5f626b07d87f19ffcf9bdd7d6aa2bbde",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "baseline_frequency_hz": 14562002962.161858,
+        "first_nonzero_prediction_relative_error": 0.006258449946484612,
+        "largest_absolute_fractional_shift_error": 0.005917322719138585
+      }
+    },
+    {
+      "archive": "coil-mutual/fields.npz",
+      "case": "coil-mutual",
+      "configuration": {
+        "case": "coil-mutual",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "3f64eadf6333a6197a38509a5649d053d470d55f236a790ed1b6959fc4b71479",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "d01e7456674de790c6e3ebda7c297b804b91545c9ef951030e9a96f9c60cbab1",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "analytic_mutual_h": 8.284985572686606e-08,
+        "coaxial_attractive_force_n": -1.4940518524666498e-06,
+        "finest_mutual_h": 8.281821970258034e-08,
+        "finest_relative_error": 0.0003818476689930739
+      }
+    },
+    {
+      "archive": "magnetostatic-current/fields.npz",
+      "case": "magnetostatic-current",
+      "configuration": {
+        "case": "magnetostatic-current",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "88cb787df7963a93a176009db99c214e6900facd7f28b0d6c311ad2b0bcd4427",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "1e8dce6173206cde0fe6879dca0d65ac9e762a1cf8c2c9f4ff3f970e8091eb51",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "ampere_current_a": 0.9999999999999964,
+        "ampere_relative_error": 3.552713678800501e-15,
+        "field_energy_j_m": 3.8234603776521e-07,
+        "net_current_a": 0.0,
+        "solver_residual": 1.9982950399138232e-14,
+        "source_work_j_m": 3.8234603776521036e-07
+      }
+    },
+    {
+      "archive": "fdtd-slab/fields.npz",
+      "case": "fdtd-slab",
+      "configuration": {
+        "case": "fdtd-slab",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "48e020b4046042b553ef3f21a3081fc4c636c6aeeaa7d4b835cd7b2dbcbfda62",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "48a8cbe6665469272c22d9f93e9a186b6176f06d5f6b6d631ec571c80cc0fc3c",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "final_device_peak_e_v_m": 0.055663564201957,
+        "maximum_absorption_error": 0.0015265855870097989,
+        "reflection_complex_relative_l2": 0.004371620720684954,
+        "transmission_complex_relative_l2": 0.003337956230704554,
+        "valid_frequency_points": 201
+      }
+    },
+    {
+      "archive": "fdtd-debye/fields.npz",
+      "case": "fdtd-debye",
+      "configuration": {
+        "case": "fdtd-debye",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "36b30ad39e255ac450cc26b299f3940c5fbe5ed27e554510fa43db990dc54e66",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "872353ec34398ffe0df632ecde211956904a27dffe5964c59895fdafbca2b92b",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "final_device_peak_e_v_m": 0.04844429477765988,
+        "maximum_absorption_error": 0.0006865168596618121,
+        "maximum_discrete_continuum_material_difference": 0.0004398656163311614,
+        "minimum_measured_absorption": 0.6933702604064218,
+        "reflection_complex_relative_l2": 0.0010180373717244117,
+        "transmission_complex_relative_l2": 0.0016396916725596974,
+        "valid_frequency_points": 201
+      }
+    },
+    {
+      "archive": "fdtd-cavity/fields.npz",
+      "case": "fdtd-cavity",
+      "configuration": {
+        "case": "fdtd-cavity",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "1423b6522f65c36b47b0cc57b036b9454322cd12be8a040598a45219fc28ba26",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "7ad3ad784903bd415f50ffe589df693ac1511874b8a2f239b5703cc86db7a85f",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "continuum_frequency_hz": 1675890788.0743763,
+        "continuum_frequency_relative_error": 6.012668713073488e-05,
+        "discrete_frequency_hz": 1675790022.3131878,
+        "maximum_relative_discrete_energy_drift": 5.551115123125783e-16,
+        "measured_frequency_hz": 1675790022.3132966,
+        "pole_fit_residual": 2.8214997651618717e-15,
+        "quality_factor_measured": null,
+        "relative_discrete_frequency_error": 6.483702463810914e-14
+      }
+    },
+    {
+      "archive": "fdtd-lossy-cavity/fields.npz",
+      "case": "fdtd-lossy-cavity",
+      "configuration": {
+        "case": "fdtd-lossy-cavity",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "734036055f87ddb23d329bde1fb2b6d4165debad6cbe98bc2acb531046a00029",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "5c431f5df2969703618daf099e2131ac406b70d5c472eee30dc1d869e9b02cb0",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "continuum_frequency_hz": 1184181390.0744028,
+        "continuum_frequency_relative_error": 5.816247752443715e-05,
+        "continuum_quality_factor": 13.175794902178996,
+        "discrete_frequency_hz": 1184112515.1510258,
+        "discrete_quality_factor": 13.174974476580342,
+        "measured_frequency_hz": 1184112515.1509178,
+        "pole_fit_residual": 2.4670994574788103e-15,
+        "quality_factor_measured": 13.174974476578724,
+        "relative_discrete_frequency_error": 9.126033262418787e-14,
+        "relative_discrete_quality_error": 1.2279066652354231e-13
+      }
+    },
+    {
+      "archive": "fdtd-absorber/fields.npz",
+      "case": "fdtd-absorber",
+      "configuration": {
+        "case": "fdtd-absorber",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "e30f192c23b6471336e09d8efdd395993f9684e82016d7e849cae7ca35d4f229",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "ac5cfcec52bb30f63f3dad9b5c67ed230487b8856e62cec01fea6c8edbe235f7",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "cpml_return_amplitude": 7.717583890049454e-08,
+        "mur_return_amplitude": 5.4294257537254684e-05,
+        "pec_return_amplitude": 0.999670564829109
+      }
+    },
+    {
+      "archive": "fdfd-line-source/fields.npz",
+      "case": "fdfd-line-source",
+      "configuration": {
+        "case": "fdfd-line-source",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "b91d52f7e9c60c021b5862865d0a821b0d3abc8c23421393fd8781f4b7f86e26",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "e6f480f0eca73c412e99e4afba39a6825fce4d171d107999886b585bb9037c52",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "complex_field_relative_l2": 0.0007538599301014411,
+        "solver_residual": 7.64991617237408e-15
+      }
+    },
+    {
+      "archive": "cylinder-scattering/fields.npz",
+      "case": "cylinder-scattering",
+      "configuration": {
+        "case": "cylinder-scattering",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "b146309bb75447627acd0cdf111e0a0ac2623ad0f6e500778d63516de04bb40b",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "eb1c95d28204755313915fe4430cca656f3839e65fbce1db20a4a0c9741512c4",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "analytic_optical_theorem_defect_m": 0.0,
+        "analytic_scattering_width_m": 0.2584751172663945,
+        "finest_complex_relative_l2": 0.02938546748985499,
+        "maximum_solver_residual": 3.949248077162516e-15
+      }
+    },
+    {
+      "archive": "dielectric-sensitivity/fields.npz",
+      "case": "dielectric-sensitivity",
+      "configuration": {
+        "case": "dielectric-sensitivity",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "6e612c36c9ae72d9222c52256523884477823c6742bbacbaf8144c2e949ac507",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "6a88f78a80f7afc3c63f64a272c2a6b7fcb247c8679368ea443221eee29d5685",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "maximum_relative_error": 3.3433225662318944e-07
+      }
+    },
+    {
+      "archive": "maxwell-force/fields.npz",
+      "case": "maxwell-force",
+      "configuration": {
+        "case": "maxwell-force",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "a54e7b9d53852d20a6b89f724c65001fbecfdf6d734dc7e8a159a11c8c86cea8",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "1326f77475f62e651b93c2a1460db03460da443a045c6bc4472170144c145d8a",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "finest_force_y_n_m": -8.987214337992762e-08,
+        "finest_relative_error": 3.7546174619174984e-05,
+        "reference_force_y_n_m": -8.987551786181525e-08
+      }
+    },
+    {
+      "archive": "dielectric-design/fields.npz",
+      "case": "dielectric-design",
+      "configuration": {
+        "case": "dielectric-design",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "63d5954959398838abebc550baf77ed28ac869f9134e82f0d92d459927e5985d",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "cfdd8a51cd0cc07b4b2ad5e84df9a9607dbe3acde971b29b55819d04cddb1662",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "accepted_iterations": 16,
+        "capacitance_gain_fraction": 0.25531708173440304,
+        "final_capacitance_f_m": 1.1994170921264384e-10,
+        "initial_capacitance_f_m": 9.554694264729269e-11,
+        "material_mean_defect": 4.440892098500626e-16
+      }
+    },
+    {
+      "archive": "manufacturing-uncertainty/fields.npz",
+      "case": "manufacturing-uncertainty",
+      "configuration": {
+        "case": "manufacturing-uncertainty",
+        "resolution_scale": 1,
+        "seed": 42
+      },
+      "provenance": {
+        "configuration_sha256": "b0a084ae759457a19ca77cac46af2eb9a9dbaf151b19d7a2f472413ba3105d31",
+        "git_dirty": false,
+        "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+        "matplotlib": "3.11.2",
+        "numpy": "2.5.4",
+        "package_version": "0.1.0",
+        "parameters_sha256": "f6f9a822518b68f0c5574262e8ccdf74debc7cbc9341114b3c29fecb69526422",
+        "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+        "python": "3.13.15",
+        "scipy": "1.18.1"
+      },
+      "summary": {
+        "linearized_std_f_m": 1.8247389236561534e-12,
+        "mean_ci95_high_f_m": 1.1406998774558923e-10,
+        "mean_ci95_low_f_m": 1.1377065619975772e-10,
+        "nominal_capacitance_f_m": 1.1393749424950568e-10,
+        "population_p025_f_m": 1.1052926006780202e-10,
+        "population_p975_f_m": 1.1727113964785653e-10,
+        "sample_mean_f_m": 1.1392300066276091e-10,
+        "sample_std_f_m": 1.723873361945954e-12,
+        "std_relative_difference": 0.05527670857598594
+      }
+    }
+  ],
+  "schema_version": 1
+}

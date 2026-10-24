@@ -1,0 +1,10 @@
+metric,value
+linearized_std_f_m,1.8247389236561534e-12
+mean_ci95_high_f_m,1.1406998774558923e-10
+mean_ci95_low_f_m,1.1377065619975772e-10
+nominal_capacitance_f_m,1.1393749424950568e-10
+population_p025_f_m,1.1052926006780202e-10
+population_p975_f_m,1.1727113964785653e-10
+sample_mean_f_m,1.1392300066276091e-10
+sample_std_f_m,1.723873361945954e-12
+std_relative_difference,0.05527670857598594

@@ -1,0 +1,19 @@
+{
+  "center_hz": 10000000000.0,
+  "epsilon_layers_real_imag": [
+    [
+      2.0,
+      -0.3
+    ],
+    [
+      4.0,
+      -0.8
+    ]
+  ],
+  "incident_peak_e_v_m": 1,
+  "seed": 42,
+  "thickness_m": [
+    0.01,
+    0.008
+  ]
+}

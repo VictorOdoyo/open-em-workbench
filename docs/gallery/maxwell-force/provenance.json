@@ -1,0 +1,12 @@
+{
+  "configuration_sha256": "a54e7b9d53852d20a6b89f724c65001fbecfdf6d734dc7e8a159a11c8c86cea8",
+  "git_dirty": false,
+  "git_revision": "255b9ec965941d1fc97a04b9f7e2101e959fbeca",
+  "matplotlib": "3.11.2",
+  "numpy": "2.5.4",
+  "package_version": "0.1.0",
+  "parameters_sha256": "1326f77475f62e651b93c2a1460db03460da443a045c6bc4472170144c145d8a",
+  "phasor_convention": "exp(+i omega t); outgoing exp(-i k r); SI units",
+  "python": "3.13.15",
+  "scipy": "1.18.1"
+}
