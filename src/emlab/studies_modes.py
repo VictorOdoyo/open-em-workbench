@@ -72,3 +72,98 @@ def cavity_cutoffs(scale=1, seed=42):
             "Scalar cutoff/cavity equations do not describe general hybrid inhomogeneous-guide propagation.",
         ],
     )
+
+
+def slab_guidance(scale=1, seed=42):
+    from .modes import slab_fd, slab_te_modes
+    from .results import curve, make
+
+    frequency, thickness = 1e14, 2e-6
+    exact = slab_te_modes(frequency, thickness, 1.5, 1.45)[0]["effective_index"]
+    rows = []
+    for base in (321, 641, 1281):
+        count = (base - 1) * scale + 1
+        x = np.linspace(-16e-6, 16e-6, count)
+        epsilon = np.where(abs(x) < thickness / 2, 1.5**2, 1.45**2)
+        epsilon[np.isclose(abs(x), thickness / 2, rtol=0, atol=1e-15)] = (1.5**2 + 1.45**2) / 2
+        solved = slab_fd(frequency, x, epsilon, 1.45)
+        measured = solved["effective_index"][0]
+        rows.append(
+            {
+                "nodes": count,
+                "spacing_m": x[1] - x[0],
+                "effective_index": measured,
+                "relative_error": abs(measured / exact - 1),
+                "guided_modes_found": len(solved["effective_index"]),
+            }
+        )
+    mode = solved["fields"][0] / np.max(abs(solved["fields"][0]))
+    return make(
+        "slab-guidance",
+        {
+            "frequency_hz": frequency,
+            "core_thickness_m": thickness,
+            "core_index": 1.5,
+            "cladding_index": 1.45,
+            "domain_bounds_m": [-16e-6, 16e-6],
+            "mesh_nodes": [row["nodes"] for row in rows],
+            "seed": seed,
+        },
+        {
+            "analytic_effective_index": exact,
+            "finest_effective_index": measured,
+            "finest_relative_error": rows[-1]["relative_error"],
+        },
+        {
+            "spacing_nm": [r["spacing_m"] * 1e9 for r in rows],
+            "effective_index": [r["effective_index"] for r in rows],
+            "reference_index": np.full(len(rows), exact),
+            "error": [r["relative_error"] for r in rows],
+            "x_um": x * 1e6,
+            "mode": mode,
+            "refractive_index": np.sqrt(epsilon),
+        },
+        [
+            curve(
+                "TE slab effective-index refinement",
+                "spacing_nm",
+                [("effective_index", "finite difference"), ("reference_index", "transcendental reference")],
+                "Grid spacing (nm)",
+                "Effective index",
+            ),
+            curve(
+                "Discretization and finite-cladding error",
+                "spacing_nm",
+                [("error", "relative error")],
+                "Grid spacing (nm)",
+                "Effective-index relative error",
+                "log",
+                "log",
+            ),
+            curve(
+                "Bound fundamental TE mode",
+                "x_um",
+                [("mode", "normalized electric field")],
+                "Transverse coordinate (micrometre)",
+                "Normalized electric amplitude",
+            ),
+            curve(
+                "Dielectric slab geometry",
+                "x_um",
+                [("refractive_index", "index")],
+                "Transverse coordinate (micrometre)",
+                "Refractive index",
+            ),
+        ],
+        {
+            "meshes": rows,
+            "profile": [
+                {"x_m": xx, "normalized_electric": field, "epsilon_r": eps}
+                for xx, field, eps in zip(x, mode, epsilon, strict=True)
+            ],
+        },
+        [
+            "Finite-difference boundaries truncate the cladding; domain and mesh errors are distinct.",
+            "Core-interface nodes use arithmetic half-cell permittivity for tangential electric fields.",
+        ],
+    )
