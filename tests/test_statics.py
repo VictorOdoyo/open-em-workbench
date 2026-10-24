@@ -26,3 +26,17 @@ def test_dipole_matches_two_opposite_charges_to_second_order_in_separation():
     minus = m.point_charge(point, -charge, (0, 0, -step / 2))
     assert plus[0] + minus[0] == pytest.approx(exact_potential, rel=1e-7)
     assert np.allclose(plus[1] + minus[1], exact_field, rtol=1e-7)
+
+
+def test_grounded_plane_has_zero_potential_tangential_field_and_correct_induced_charge():
+    from emlab.core import EPS0
+
+    points = np.array([[0.02, 0, 0], [0.1, 0.03, 0]])
+    potential, field = m.grounded_plane(points, 1e-9, 0.05)
+    assert np.max(abs(potential)) == 0
+    assert np.max(abs(field[:, :2])) == 0
+    assert EPS0 * field[0, 2] == pytest.approx(m.image_surface_charge(0.02, 1e-9, 0.05))
+    rho = np.linspace(0, 5, 20001)
+    integral = np.trapezoid(2 * np.pi * rho * m.image_surface_charge(rho, 1e-9, 0.05), rho)
+    expected = -1e-9 * (1 - 0.05 / np.sqrt(5**2 + 0.05**2))
+    assert integral == pytest.approx(expected, rel=1e-5)

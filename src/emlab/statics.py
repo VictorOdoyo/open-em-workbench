@@ -31,3 +31,23 @@ def electric_dipole(points_xyz, moment_c_m, epsilon_r=1.0):
         3 * points * projection[..., None] / radius[..., None] ** 5 - moment / radius[..., None] ** 3
     )
     return potential, field
+
+
+def grounded_plane(points_xyz, charge_c, height_m, epsilon_r=1.0):
+    from .core import finite_array
+
+    points = finite_array(points_xyz, real=True)
+    if points.shape[-1] != 3 or height_m <= 0 or np.any(points[..., 2] < 0):
+        raise ValueError("positive source height and observations in the upper half space required")
+    real = point_charge(points, charge_c, (0, 0, height_m), epsilon_r)
+    image = point_charge(points, -charge_c, (0, 0, -height_m), epsilon_r)
+    return real[0] + image[0], real[1] + image[1]
+
+
+def image_surface_charge(radial_distance_m, charge_c, height_m):
+    from .core import finite_array
+
+    rho = finite_array(radial_distance_m, real=True)
+    if height_m <= 0 or np.any(rho < 0):
+        raise ValueError("positive source height and nonnegative radial coordinates required")
+    return -charge_c * height_m / (2 * np.pi * (rho**2 + height_m**2) ** 1.5)
