@@ -20,3 +20,12 @@ def test_scattering_width_integrates_to_modal_sum_and_satisfies_optical_theorem(
     assert np.trapezoid(result["differential_m_rad"], angles) == pytest.approx(result["scattering_m"])
     assert result["scattering_m"] == pytest.approx(result["extinction_m"], rel=1e-12)
     assert abs(result["absorption_m"]) < 1e-13
+
+
+def test_dielectric_cylinder_no_contrast_unitarity_and_absorptive_passivity():
+    empty = m.dielectric_coefficients(1e9, 0.04, 1)
+    assert np.max(abs(empty["coefficient"])) < 1e-14
+    lossless = m.widths(m.dielectric_coefficients(1e9, 0.04, 4), [0, 1])
+    assert lossless["extinction_m"] == pytest.approx(lossless["scattering_m"], rel=1e-12)
+    lossy = m.widths(m.dielectric_coefficients(1e9, 0.04, 4 - 0.5j), [0, 1])
+    assert lossy["absorption_m"] > 0

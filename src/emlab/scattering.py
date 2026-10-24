@@ -73,3 +73,24 @@ def widths(coefficients, angles_radians):
         "extinction_m": extinction,
         "absorption_m": extinction - scattering,
     }
+
+
+def dielectric_coefficients(frequency_hz, radius_m, epsilon_r, epsilon_background=1.0, maximum_order=None):
+    from scipy.special import h2vp, hankel2, jv, jve, jvp
+
+    from .waves import longitudinal_wavenumber
+
+    basis = pec_coefficients(frequency_hz, radius_m, epsilon_background, maximum_order)
+    orders = basis["orders"]
+    exterior = basis["wavenumber_m"]
+    interior = complex(longitudinal_wavenumber(frequency_hz, epsilon_r))
+    size_out, size_in = exterior * radius_m, interior * radius_m
+    internal = jve(orders, size_in)
+    internal_derivative = (jve(orders - 1, size_in) - jve(orders + 1, size_in)) / 2
+    outside, outgoing = jv(orders, size_out), hankel2(orders, size_out)
+    numerator = interior * internal_derivative * outside - exterior * jvp(orders, size_out) * internal
+    denominator = exterior * h2vp(orders, size_out) * internal - interior * internal_derivative * outgoing
+    basis["coefficient"] = numerator / denominator
+    if not np.all(np.isfinite(basis["coefficient"])):
+        raise RuntimeError("cylindrical material response exceeded stable special-function limits")
+    return basis
