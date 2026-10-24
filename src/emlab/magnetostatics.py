@@ -142,3 +142,25 @@ def mutual_inductance(first_vertices, second_vertices, quadrature_order=4):
     if np.any(distance < 1e-14):
         raise ValueError("intersecting or coincident filaments require a finite-wire self model")
     return float(MU0 / (4 * np.pi) * np.sum((dl_first @ dl_second.T) / distance))
+
+
+def coaxial_mutual(radius_first_m, radius_second_m, separation_m):
+    from scipy.special import ellipe, ellipk
+
+    from .core import MU0
+
+    if min(radius_first_m, radius_second_m) <= 0 or not np.isfinite(separation_m):
+        raise ValueError("positive loop radii and finite separation required")
+    a, b, z = radius_first_m, radius_second_m, separation_m
+    denominator = (a + b) ** 2 + z**2
+    parameter = 4 * a * b / denominator
+    if parameter >= 1:
+        raise ValueError("coincident circular filaments have singular mutual inductance")
+    if parameter < 1e-6:
+        return MU0 * np.pi * a * a * b * b / (2 * denominator**1.5) * (1 + 0.75 * parameter)
+    return (
+        MU0
+        * np.sqrt(a * b)
+        * ((2 - parameter) * ellipk(parameter) - 2 * ellipe(parameter))
+        / np.sqrt(parameter)
+    )

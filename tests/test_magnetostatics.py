@@ -71,3 +71,14 @@ def test_neumann_mutual_inductance_obeys_reciprocity_and_winding_orientation():
     assert mutual > 0
     assert m.mutual_inductance(second, first) == pytest.approx(mutual, rel=1e-12)
     assert m.mutual_inductance(first[::-1], second) == pytest.approx(-mutual, rel=1e-12)
+
+
+def test_polygon_neumann_integral_converges_to_coaxial_elliptic_solution():
+    exact = m.coaxial_mutual(0.1, 0.08, 0.05)
+    errors = []
+    for segments in (24, 48, 96):
+        first = m.circular_loop(0.1, segments)
+        second = m.circular_loop(0.08, segments, (0, 0, 0.05))
+        errors.append(abs(m.mutual_inductance(first, second) - exact))
+    assert errors[2] < errors[1] < errors[0]
+    assert errors[-1] / exact < 0.001
