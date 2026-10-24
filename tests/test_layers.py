@@ -27,3 +27,16 @@ def test_empty_oblique_stack_reduces_to_independent_fresnel_formula():
         expected = fresnel_oblique(1e9, 1, 4, 0.4, polarization)
         assert interface[0, 0] == pytest.approx(expected["r"])
         assert interface[1, 0] == pytest.approx(expected["t"])
+
+
+def test_lossless_film_conserves_power_and_resonant_halfwave_is_transparent():
+    from emlab.core import C0
+
+    frequency = np.linspace(0.5e9, 1.5e9, 31)
+    result = m.stack(frequency, [4], [C0 / (4 * 1e9)])
+    assert np.allclose(result["R"] + result["T"], 1)
+    center = m.stack(1e9, [4], [C0 / (4 * 1e9)])
+    assert center["R"] < 1e-25
+    assert center["T"] == pytest.approx(1)
+    thick = m.stack(1e9, [-1000 - 1e5j], [10])
+    assert np.isfinite(thick["A"]) and 0 <= thick["A"] <= 1

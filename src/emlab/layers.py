@@ -76,3 +76,32 @@ def components(
         )
     pieces.append(interface(admittance[-2], admittance[-1]))
     return {"pieces": pieces, "admittance": admittance, "kz": kz, "thickness": thickness}
+
+
+def _compose(pieces):
+    from .networks import star
+
+    result = np.array([[0, 1], [1, 0]], complex)
+    for piece in pieces:
+        result = star(result, piece)
+    return result
+
+
+def stack(frequency_hz, epsilon_layers, thickness_m, **options):
+    system = components(frequency_hz, epsilon_layers, thickness_m, **options)
+    raw = _compose(system["pieces"])
+    left, right = system["admittance"][0].real, system["admittance"][-1].real
+    if np.any(left <= 0) or np.any(right <= 0):
+        raise ValueError("propagating exterior ports required for transmitted power")
+    normalization = np.sqrt(np.stack((left, right), axis=-1))
+    scattering = raw * normalization[..., :, None] / normalization[..., None, :]
+    r, t = raw[..., 0, 0], raw[..., 1, 0]
+    reflectance, transmittance = abs(r) ** 2, right / left * abs(t) ** 2
+    return {
+        "r": r,
+        "t": t,
+        "R": reflectance,
+        "T": transmittance,
+        "A": 1 - reflectance - transmittance,
+        "s": scattering,
+    }
