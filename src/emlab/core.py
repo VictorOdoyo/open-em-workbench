@@ -77,3 +77,13 @@ def integrate(samples, coordinates, axis=-1):
     if len(coordinates) < 2 or np.any(np.diff(coordinates) <= 0) or samples.shape[axis] != len(coordinates):
         raise ValueError("ordered coordinates aligned with integration axis required")
     return np.trapezoid(samples, coordinates, axis=axis)
+
+
+def convergence_order(spacings, errors):
+    spacings, errors = finite_array(spacings, real=True), finite_array(errors, real=True)
+    if spacings.ndim != 1 or spacings.shape != errors.shape or len(errors) < 2:
+        raise ValueError("paired spacing and error sequences required")
+    if np.any(spacings <= 0) or np.any(errors <= 0) or len(np.unique(spacings)) != len(spacings):
+        raise ValueError("positive distinct spacings and nonzero errors required")
+    slope, intercept = np.polyfit(np.log(spacings), np.log(errors), 1)
+    return float(slope), float(np.exp(intercept))
