@@ -15,3 +15,10 @@ def test_ricker_pulse_is_broadband_zero_mean_with_unit_center():
     pulse = m.ricker(time, 0, 1e9)
     assert pulse[5000] == 1
     assert abs(np.trapezoid(pulse, time)) < 1e-24
+
+
+def test_continuous_source_is_causal_and_reaches_requested_amplitude():
+    assert m.continuous(-1, 1, 1) == 0
+    assert m.continuous(0, 1, 1) == 0
+    assert m.continuous(0.5, 1, 1) == pytest.approx(-0.5)
+    assert m.continuous(2, 1, 1) == pytest.approx(1)

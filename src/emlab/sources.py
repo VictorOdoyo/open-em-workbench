@@ -27,3 +27,14 @@ def ricker(time_s, center_s, frequency_hz, amplitude=1.0):
         raise ValueError("positive finite pulse frequency and finite center/amplitude required")
     argument = np.pi * frequency_hz * (time - center_s)
     return amplitude * (1 - 2 * argument**2) * np.exp(-(argument**2))
+
+
+def continuous(time_s, frequency_hz, ramp_s, amplitude=1.0, phase=0.0):
+    from .core import finite_array
+
+    time = finite_array(time_s, real=True)
+    if frequency_hz <= 0 or ramp_s <= 0 or not np.all(np.isfinite([frequency_hz, ramp_s, amplitude, phase])):
+        raise ValueError("positive finite frequency and ramp duration required")
+    ratio = np.clip(time / ramp_s, 0, 1)
+    envelope = np.where(time <= 0, 0, 0.5 * (1 - np.cos(np.pi * ratio)))
+    return amplitude * envelope * np.cos(2 * np.pi * frequency_hz * time + phase)
