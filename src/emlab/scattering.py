@@ -54,3 +54,22 @@ def exterior_field(coefficients, points_xy, angle_radians=0.0):
         "scattered": scattered.reshape(shape),
         "total": (incident + scattered).reshape(shape),
     }
+
+
+def widths(coefficients, angles_radians):
+    from .core import finite_array
+
+    angles = finite_array(angles_radians, real=True)
+    orders = coefficients["orders"]
+    values = coefficients["coefficient"]
+    k = coefficients["wavenumber_m"]
+    pattern = np.sum(values[:, None] * np.exp(1j * orders[:, None] * angles.reshape(1, -1)), axis=0)
+    differential = 2 / (np.pi * k) * abs(pattern) ** 2
+    scattering = float(4 / k * np.sum(abs(values) ** 2))
+    extinction = float(-4 / k * np.sum(values.real))
+    return {
+        "differential_m_rad": differential.reshape(angles.shape),
+        "scattering_m": scattering,
+        "extinction_m": extinction,
+        "absorption_m": extinction - scattering,
+    }
