@@ -88,7 +88,7 @@ def validate(result):
     for plot in result["plots"]:
         if plot["kind"] == "curve":
             x = np.asarray(arrays[plot["x"]])
-            if x.ndim != 1 or x.size < 1:
+            if x.ndim != 1 or x.size < 1 or np.iscomplexobj(x):
                 raise ValueError("one-dimensional curve coordinates required")
             valid = np.ones(len(x), bool) if plot["valid"] is None else arrays[plot["valid"]]
             if valid.dtype != bool or valid.shape != x.shape or not np.any(valid):

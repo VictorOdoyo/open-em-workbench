@@ -19,3 +19,14 @@ def test_study_schema_retains_complex_fields_but_rejects_nonfinite_and_unaligned
     result["arrays"]["magnitude"] = np.array([np.nan, 2])
     with pytest.raises(ValueError, match="finite"):
         m.validate(result)
+
+
+def test_complex_curve_abscissas_are_not_silently_cast_to_real():
+    with pytest.raises(ValueError, match="coordinates"):
+        m.make(
+            "invalid-curve",
+            {},
+            {"value": 1},
+            {"x": [1 + 1j, 2 + 2j], "y": [1, 2]},
+            [m.curve("invalid", "x", [("y", "values")], "x", "y")],
+        )
