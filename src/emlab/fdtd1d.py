@@ -58,3 +58,63 @@ class Yee1D:
         self.e[[0, -1]] = 0
         self.iteration += 1
         return self.e
+
+
+class CPML1D(Yee1D):
+    def __init__(
+        self,
+        nodes,
+        spacing_m,
+        pml_cells=32,
+        target_reflection=1e-8,
+        kappa_max=3.0,
+        alpha_max_s=None,
+        **options,
+    ):
+        from .core import C0
+        from .timedomain import pml_coefficients, pml_profile
+
+        super().__init__(nodes, spacing_m, **options)
+        if (
+            not isinstance(pml_cells, int)
+            or isinstance(pml_cells, bool)
+            or not 2 <= pml_cells < (nodes - 1) / 2
+        ):
+            raise ValueError("at least two nonoverlapping PML cells on each side required")
+        self.pml_cells = pml_cells
+        alpha_max_s = 0.05 * C0 / spacing_m if alpha_max_s is None else alpha_max_s
+        extent = (nodes - 1) * spacing_m
+        x_e = np.arange(nodes) * spacing_m
+        x_h = (np.arange(nodes - 1) + 0.5) * spacing_m
+        e_profile = pml_profile(
+            x_e,
+            0,
+            extent,
+            pml_cells * spacing_m,
+            target_reflection,
+            kappa_max=kappa_max,
+            alpha_max_s=alpha_max_s,
+        )
+        h_profile = pml_profile(
+            x_h,
+            0,
+            extent,
+            pml_cells * spacing_m,
+            target_reflection,
+            kappa_max=kappa_max,
+            alpha_max_s=alpha_max_s,
+        )
+        self.be, self.ce, self.ke = [v[1:-1] for v in pml_coefficients(*e_profile, self.dt)]
+        self.bh, self.cph, self.kh = pml_coefficients(*h_profile, self.dt)
+        self.psi_e = np.zeros(nodes - 2)
+        self.psi_h = np.zeros(nodes - 1)
+
+    def _gradient_e(self):
+        raw = super()._gradient_e()
+        self.psi_h = self.bh * self.psi_h + self.cph * raw
+        return raw / self.kh + self.psi_h
+
+    def _gradient_h(self):
+        raw = super()._gradient_h()
+        self.psi_e = self.be * self.psi_e + self.ce * raw
+        return raw / self.ke + self.psi_e

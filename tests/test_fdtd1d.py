@@ -33,3 +33,23 @@ def test_impressed_current_has_ampere_sign_and_si_scaling():
     state.step(current)
     assert state.e[3] == pytest.approx(-state.dt / EPS0 * 0.1)
     assert state.electric_time_s - state.magnetic_time_s == pytest.approx(state.dt / 2)
+
+
+def test_cpml_reduces_a_returning_pulse_compared_with_pec():
+    from emlab.core import C0, ETA0
+
+    traces = []
+    for cls, options in ((m.Yee1D, {}), (m.CPML1D, {"pml_cells": 40})):
+        state = cls(401, 0.001, **options)
+        state.e[:] = np.exp(-(((np.arange(401) * state.dx - 0.2) / 0.015) ** 2))
+        positions = (np.arange(400) + 0.5) * state.dx + C0 * state.dt / 2
+        state.h[:] = np.exp(-(((positions - 0.2) / 0.015) ** 2)) / ETA0
+        trace = []
+        for _ in range(500):
+            state.step()
+            trace.append(state.e[250])
+        traces.append(np.array(trace))
+    time = np.arange(500) * state.dt
+    late = (time > 0.65e-9) & (time < 1.35e-9)
+    assert np.max(abs(traces[0][late])) > 0.8
+    assert np.max(abs(traces[1][late])) < 0.002
