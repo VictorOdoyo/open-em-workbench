@@ -74,3 +74,12 @@ def poynting(electric, magnetic):
     if electric.shape != magnetic.shape or electric.shape[-1] != 3:
         raise ValueError("matching three-component field vectors required")
     return 0.5 * np.real(np.cross(electric, magnetic.conj()))
+
+
+def wave_amplitudes(electric, magnetic, impedance):
+    from .core import finite_array
+
+    electric, magnetic = finite_array(electric), finite_array(magnetic)
+    if electric.shape != magnetic.shape or np.any(np.asarray(impedance).real <= 0):
+        raise ValueError("colocated field traces and positive-real wave impedance required")
+    return (electric + impedance * magnetic) / 2, (electric - impedance * magnetic) / 2

@@ -48,3 +48,13 @@ def test_peak_phasor_poynting_uses_half_factor_and_magnetic_conjugate():
     flux = m.poynting(electric, magnetic)
     assert flux[0] == pytest.approx(4 / ETA0)
     assert np.allclose(flux[1:], 0)
+
+
+def test_directional_decomposition_resolves_standing_wave_fields():
+    from emlab.core import ETA0
+
+    forward, backward = 2 + 1j, -0.3 + 0.2j
+    e, h = forward + backward, (forward - backward) / ETA0
+    recovered = m.wave_amplitudes(e, h, ETA0)
+    assert recovered[0] == pytest.approx(forward)
+    assert recovered[1] == pytest.approx(backward)
