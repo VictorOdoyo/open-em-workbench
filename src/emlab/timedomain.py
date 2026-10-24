@@ -96,3 +96,16 @@ def dispersion_frequency(wavenumber_components, spacings_m, dt_s, speed_m_s):
     if np.any(argument > 1 + 1e-12):
         raise ValueError("unresolvable discrete wave")
     return 2 * np.arcsin(np.minimum(argument, 1)) / dt_s
+
+
+def numerical_wavenumber(frequency_hz, spacing_m, dt_s, speed_m_s):
+    from .core import finite_array
+
+    f = finite_array(frequency_hz, real=True)
+    courant = speed_m_s * dt_s / spacing_m
+    if min(spacing_m, dt_s, speed_m_s) <= 0 or not 0 < courant <= 1 or np.any(f < 0):
+        raise ValueError("stable positive grid parameters and nonnegative frequency required")
+    argument = np.sin(np.pi * f * dt_s) / courant
+    if np.any(argument > 1) or np.any(f * dt_s > 0.5):
+        raise ValueError("frequency exceeds the grid propagation band")
+    return 2 * np.arcsin(argument) / spacing_m

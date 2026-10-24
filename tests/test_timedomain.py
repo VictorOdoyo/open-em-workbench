@@ -50,3 +50,15 @@ def test_one_dimensional_unit_courant_has_exact_linear_dispersion():
     k = np.linspace(1, 0.9 * np.pi / spacing, 21)[:, None]
     omega = m.dispersion_frequency(k, [spacing], spacing / C0, C0)
     assert np.allclose(omega, C0 * k[:, 0])
+
+
+def test_discrete_wavenumber_inverts_frequency_and_rejects_grid_stopband():
+    from emlab.core import C0
+
+    spacing, dt = 0.01, 0.005 / C0
+    f = np.array([1e8, 1e9])
+    k = m.numerical_wavenumber(f, spacing, dt, C0)
+    recovered = m.dispersion_frequency(k[:, None], [spacing], dt, C0) / (2 * np.pi)
+    assert np.allclose(f, recovered)
+    with pytest.raises(ValueError):
+        m.numerical_wavenumber(0.49 / dt, spacing, dt, C0)
