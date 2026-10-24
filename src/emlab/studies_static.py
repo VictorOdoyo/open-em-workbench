@@ -161,6 +161,7 @@ def coupled_capacitors(scale=1, seed=42):
     field_energy = energy(grid, potential, 3)
     matrix_plot = image("Maxwell capacitance matrix", "capacitance_pf_m", Grid2D(3, 3, 1, 1), "C (pF/m)")
     matrix_plot["xlabel"], matrix_plot["ylabel"] = "Driven conductor index", "Observed conductor index"
+    matrix_plot["categorical"] = True
     rows = [{"observed": i, "driven": j, "capacitance_f_m": matrix[i, j]} for i in range(3) for j in range(3)]
     return make(
         "capacitance-coupling",

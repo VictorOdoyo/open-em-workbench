@@ -222,8 +222,7 @@ def plot_result(result, path):
             if plot["mask"] is not None:
                 field = np.ma.masked_where(arrays[plot["mask"]], field)
             signed = np.min(field) < 0 < np.max(field)
-            colormap = plt.get_cmap("RdBu_r" if signed else "viridis").copy()
-            colormap.set_bad("#d1d5db")
+            colormap = plt.get_cmap("RdBu_r" if signed else "viridis").with_extremes(bad="#d1d5db")
             limit = float(np.max(abs(field))) if signed else None
             shown = ax.pcolormesh(
                 plot["x"],
@@ -234,7 +233,17 @@ def plot_result(result, path):
                 vmin=-limit if signed else None,
                 vmax=limit,
             )
-            ax.set(xlim=(plot["x"][0], plot["x"][-1]), ylim=(plot["y"][0], plot["y"][-1]), aspect="equal")
+            if plot.get("categorical", False):
+                x, y = np.asarray(plot["x"]), np.asarray(plot["y"])
+                ax.set(
+                    xlim=(x[0] - (x[1] - x[0]) / 2, x[-1] + (x[-1] - x[-2]) / 2),
+                    ylim=(y[0] - (y[1] - y[0]) / 2, y[-1] + (y[-1] - y[-2]) / 2),
+                    xticks=x,
+                    yticks=y,
+                    aspect="equal",
+                )
+            else:
+                ax.set(xlim=(plot["x"][0], plot["x"][-1]), ylim=(plot["y"][0], plot["y"][-1]), aspect="equal")
             fig.colorbar(shown, ax=ax, label=plot["colorbar"], pad=0.02)
         ax.set(title=plot["title"], xlabel=plot["xlabel"], ylabel=plot["ylabel"])
     for ax in list(axes.flat)[len(panels) :]:
