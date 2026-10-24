@@ -29,3 +29,10 @@ def test_spectral_normalization_retains_an_explicit_validity_mask():
     assert ratio[-1] == pytest.approx(0.2 + 0.4j)
     with pytest.raises(ValueError, match="no incident"):
         m.spectral_ratio(np.ones(3), np.zeros(3))
+
+
+def test_time_gate_preserves_units_and_excludes_outside_events():
+    values = np.ones(101)
+    gated = m.time_gate(values, 1e-12, (20e-12, 80e-12), 0)
+    assert gated[50] == 1 and gated[0] == 0 and gated[-1] == 0
+    assert np.max(gated) == 1

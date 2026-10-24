@@ -42,3 +42,22 @@ def spectral_ratio(observed, reference, relative_floor=1e-3):
     valid = abs(reference) >= peak * relative_floor
     ratio = np.divide(observed, reference, out=np.zeros_like(observed, dtype=complex), where=valid)
     return ratio, valid
+
+
+def time_gate(samples, dt_s, interval_s, taper_fraction=0.2, time_offset_s=0.0):
+    from scipy.signal.windows import tukey
+
+    from .core import finite_array
+
+    values = finite_array(samples)
+    if values.ndim not in (1, 2) or dt_s <= 0 or not 0 <= taper_fraction <= 1:
+        raise ValueError("time samples positive timestep and valid taper fraction required")
+    if len(interval_s) != 2 or interval_s[1] <= interval_s[0]:
+        raise ValueError("ordered gate interval required")
+    time = time_offset_s + np.arange(len(values)) * dt_s
+    selected = (time >= interval_s[0]) & (time <= interval_s[1])
+    if selected.sum() < 3:
+        raise ValueError("time gate must retain at least three samples")
+    weights = np.zeros(len(values))
+    weights[selected] = tukey(int(selected.sum()), taper_fraction)
+    return values * weights if values.ndim == 1 else values * weights[:, None]
