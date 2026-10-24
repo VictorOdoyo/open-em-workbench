@@ -81,3 +81,15 @@ def skin_depth(frequency_hz, conductivity, mu_r=1):
 
 def surface_impedance(frequency_hz, conductivity, mu_r=1):
     return (1 + 1j) / (conductivity * skin_depth(frequency_hz, conductivity, mu_r))
+
+
+def rotated_tensor(principal_values, rotation):
+    from .core import finite_array
+
+    values = finite_array(principal_values, real=True, ndim=1)
+    rotation = finite_array(rotation, real=True)
+    if rotation.shape != (len(values), len(values)) or np.any(values <= 0):
+        raise ValueError("positive principal values and matching rotation matrix required")
+    if not np.allclose(rotation.T @ rotation, np.eye(len(values)), atol=1e-12):
+        raise ValueError("orthogonal coordinate transformation required")
+    return (rotation * values) @ rotation.T

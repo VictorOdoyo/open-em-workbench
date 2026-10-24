@@ -58,3 +58,11 @@ def test_copper_skin_depth_and_impedance_match_good_conductor_limit():
     assert 65e-6 < depth < 67e-6
     _, exact = m.propagation(1e6, m.permittivity(1e6, 1, 5.8e7))
     assert m.surface_impedance(1e6, 5.8e7) == pytest.approx(exact, rel=1e-8)
+
+
+def test_rotated_anisotropy_preserves_principal_energy():
+    angle = 0.4
+    rotation = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+    tensor = m.rotated_tensor([2, 6], rotation)
+    assert np.allclose(np.linalg.eigvalsh(tensor), [2, 6])
+    assert tensor[0, 1] != 0
