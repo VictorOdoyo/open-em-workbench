@@ -72,3 +72,12 @@ def test_sparse_direct_and_cg_match_independent_dense_solution():
         assert residual < 1e-9
     with pytest.raises(RuntimeError):
         m.solve_linear(matrix, rhs, "cg", max_iterations=1)
+
+
+def test_face_gradient_recovers_affine_potential_exactly():
+    from emlab.grid import Grid2D
+
+    grid = Grid2D(8, 6, 0.1, 0.2)
+    x, y = grid.mesh()
+    gx, gy = m.gradient_faces(grid, 3 * x - 2 * y + 1)
+    assert np.allclose(gx, 3) and np.allclose(gy, -2)

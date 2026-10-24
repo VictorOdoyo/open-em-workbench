@@ -109,3 +109,12 @@ def solve_linear(matrix, rhs, method="direct", tolerance=1e-10, max_iterations=5
     if residual > max(10 * tolerance, 1e-8):
         raise RuntimeError("field solve failed residual verification")
     return solution, residual, iterations
+
+
+def gradient_faces(grid, potential):
+    from .core import finite_array
+
+    potential = finite_array(potential)
+    if potential.shape != grid.shape:
+        raise ValueError("nodal potential must match grid")
+    return np.diff(potential, axis=1) / grid.dx, np.diff(potential, axis=0) / grid.dy
