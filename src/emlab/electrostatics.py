@@ -59,3 +59,20 @@ def energy(grid, potential, epsilon_r=1):
         raise ValueError("potential must match grid")
     values = potential.ravel()
     return float(0.5 * EPS0 * (values @ (stiffness(grid, epsilon_r) @ values)))
+
+
+def conductor_charges(grid, labels, potential, epsilon_r=1, charge_density=0):
+    labels = np.asarray(labels)
+    potential = np.asarray(potential)
+    if labels.shape != grid.shape or labels.dtype.kind not in "iu" or np.any(labels < -1):
+        raise ValueError("integer conductor labels with -1 for free nodes required")
+    if potential.shape != grid.shape:
+        raise ValueError("potential must match grid")
+    reaction = charge_reaction(grid, potential, epsilon_r, charge_density)
+    charges = {}
+    for label in np.unique(labels[labels >= 0]):
+        mask = labels == label
+        if np.ptp(potential[mask]) > 1e-9 * max(1, float(np.max(abs(potential[mask])))):
+            raise ValueError("each conductor must be equipotential")
+        charges[int(label)] = float(np.sum(reaction[mask]))
+    return charges

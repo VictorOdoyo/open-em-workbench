@@ -46,3 +46,19 @@ def test_uniform_field_energy_matches_continuum_volume_integral():
     grid = from_bounds((0, 2), (0, 1), 17, 13)
     x, _ = grid.mesh()
     assert m.energy(grid, 3 * x, 4) == pytest.approx(0.5 * EPS0 * 4 * 9 * 2, rel=1e-13)
+
+
+def test_conductor_charge_and_field_energy_agree_for_parallel_plates():
+    from emlab.core import EPS0
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((0, 2), (0, 1), 21, 11)
+    labels = np.full(grid.shape, -1, int)
+    labels[0] = 0
+    labels[-1] = 1
+    result = m.solve(grid, 3, labels >= 0, (labels == 1) * 2)
+    charges = m.conductor_charges(grid, labels, result["potential"], 3)
+    expected = EPS0 * 3 * 2 / 1
+    assert charges[1] == pytest.approx(expected * 2, rel=1e-12)
+    assert charges[0] + charges[1] == pytest.approx(0, abs=1e-24)
+    assert m.energy(grid, result["potential"], 3) == pytest.approx(0.5 * 2 * charges[1])
