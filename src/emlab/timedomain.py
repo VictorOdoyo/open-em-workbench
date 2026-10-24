@@ -124,3 +124,14 @@ def debye_coefficients(epsilon_static, epsilon_infinity, relaxation_s, dt_s):
     decay = (2 * tau - dt_s) / (2 * tau + dt_s)
     coupling = EPS0 * (static - high) * dt_s / (2 * tau + dt_s)
     return decay, coupling
+
+
+def debye_permittivity(frequency_hz, epsilon_static, epsilon_infinity, relaxation_s, dt_s):
+    from .core import EPS0, finite_array
+
+    frequency = finite_array(frequency_hz, real=True)
+    if np.any(frequency < 0) or np.any(frequency * dt_s >= 0.5):
+        raise ValueError("frequency must lie below the temporal Nyquist limit")
+    decay, coupling = debye_coefficients(epsilon_static, epsilon_infinity, relaxation_s, dt_s)
+    delay = np.exp(-2j * np.pi * frequency * dt_s)
+    return epsilon_infinity + coupling / EPS0 * (1 + delay) / (1 - decay * delay)

@@ -74,3 +74,12 @@ def test_debye_auxiliary_coefficients_reproduce_constant_field_relaxation():
         polarization = decay * polarization + 2 * coupling * electric
     exact = EPS0 * 4 * electric * (1 - np.exp(-100 * dt / tau))
     assert polarization == pytest.approx(exact, rel=1e-5)
+
+
+def test_discrete_debye_model_converges_to_continuum_at_second_order_in_timestep():
+    from emlab.materials import debye
+
+    exact = debye(1e9, 6, 2, 1e-10)
+    coarse = abs(m.debye_permittivity(1e9, 6, 2, 1e-10, 1e-11) - exact)
+    fine = abs(m.debye_permittivity(1e9, 6, 2, 1e-10, 5e-12) - exact)
+    assert coarse / fine == pytest.approx(4, rel=0.003)
