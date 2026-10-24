@@ -33,3 +33,12 @@ def test_loop_center_and_far_axis_have_correct_limiting_scaling():
     radius = 0.1
     assert m.loop_axis(radius, 0, 3) == pytest.approx(MU0 * 3 / (2 * radius))
     assert m.loop_axis(radius, 10) / m.loop_axis(radius, 20) == pytest.approx(8, rel=2e-4)
+
+
+def test_off_axis_elliptic_field_matches_independent_polygon_filament_integration():
+    points = np.array([[0.03, 0.02, 0.04], [0.14, 0, 0.02], [0, 0, 0.05]])
+    exact = m.circular_field(points, 0.1, 2)
+    polygon = m.polyline_field(points, m.circular_loop(0.1, 512), 2)
+    from emlab.core import relative_error
+
+    assert relative_error(exact, polygon) < 5e-5

@@ -60,3 +60,36 @@ def loop_axis(radius_m, axial_position_m, current_a=1.0):
     if radius_m <= 0 or not np.isfinite(radius_m + current_a):
         raise ValueError("positive finite loop radius and finite current required")
     return MU0 * current_a * radius_m**2 / (2 * (radius_m**2 + z**2) ** 1.5)
+
+
+def circular_field(points_xyz, radius_m, current_a=1.0):
+    from scipy.special import ellipe, ellipk
+
+    from .core import MU0, finite_array
+
+    points = finite_array(points_xyz, real=True)
+    if points.shape[-1] != 3 or radius_m <= 0 or not np.isfinite(radius_m + current_a):
+        raise ValueError("three-dimensional points and positive finite coil radius required")
+    flat = points.reshape(-1, 3)
+    rho, z = np.hypot(flat[:, 0], flat[:, 1]), flat[:, 2]
+    axis = rho == 0
+    denominator = (radius_m - rho) ** 2 + z**2
+    if np.any(denominator == 0):
+        raise ValueError("observation lies on a singular circular filament")
+    scale = np.sqrt((radius_m + rho) ** 2 + z**2)
+    parameter = 4 * radius_m * rho / scale**2
+    first, second = ellipk(parameter), ellipe(parameter)
+    radial = np.zeros_like(rho)
+    np.divide(
+        MU0 * current_a * z * (-first + (radius_m**2 + rho**2 + z**2) / denominator * second),
+        2 * np.pi * rho * scale,
+        out=radial,
+        where=~axis,
+    )
+    axial = (
+        MU0 * current_a / (2 * np.pi * scale) * (first + (radius_m**2 - rho**2 - z**2) / denominator * second)
+    )
+    axial[axis] = loop_axis(radius_m, z[axis], current_a)
+    direction_x = np.divide(flat[:, 0], rho, out=np.zeros_like(rho), where=~axis)
+    direction_y = np.divide(flat[:, 1], rho, out=np.zeros_like(rho), where=~axis)
+    return np.column_stack((radial * direction_x, radial * direction_y, axial)).reshape(points.shape)
