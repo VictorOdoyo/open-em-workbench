@@ -44,3 +44,13 @@ def test_material_painting_has_explicit_ordered_precedence():
     center[4, 4] = True
     values = m.material_map(grid, 1, [(whole, 2), (center, 5 - 0.1j)])
     assert values[4, 4] == 5 - 0.1j and values[3, 3] == 2
+
+
+def test_subpixel_fill_integrates_circle_area_and_clips_boundary_cells():
+    from emlab.grid import dual_weights, from_bounds
+
+    grid = from_bounds((-1, 1), (-1, 1), 25, 25)
+    fill = m.fill_fraction(grid, lambda x, y: x * x + y * y < 0.6**2, 16)
+    area = np.sum(fill * dual_weights(grid))
+    assert area == pytest.approx(np.pi * 0.6**2, rel=0.003)
+    assert np.any((fill > 0) & (fill < 1))

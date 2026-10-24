@@ -56,3 +56,21 @@ def material_map(grid, background=1, regions=()):
             raise ValueError("boolean material masks matching grid required")
         result[mask] = value
     return finite_array(result)
+
+
+def fill_fraction(grid, predicate, subdivisions=8):
+    if not isinstance(subdivisions, int) or not 1 <= subdivisions <= 128:
+        raise ValueError("supersampling subdivisions must lie between one and 128")
+    x, y = grid.mesh()
+    left, right = np.maximum(x - grid.dx / 2, grid.x[0]), np.minimum(x + grid.dx / 2, grid.x[-1])
+    bottom, top = np.maximum(y - grid.dy / 2, grid.y[0]), np.minimum(y + grid.dy / 2, grid.y[-1])
+    fraction = np.zeros(grid.shape)
+    for sy in range(subdivisions):
+        yy = bottom + (sy + 0.5) / subdivisions * (top - bottom)
+        for sx in range(subdivisions):
+            xx = left + (sx + 0.5) / subdivisions * (right - left)
+            inside = np.asarray(predicate(xx, yy), dtype=bool)
+            if inside.shape != grid.shape:
+                raise ValueError("region predicate must return one boolean per sample")
+            fraction += inside
+    return fraction / subdivisions**2
