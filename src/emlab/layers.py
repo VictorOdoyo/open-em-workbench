@@ -170,3 +170,16 @@ def bragg_mirror(center_hz, index_high, index_low, pairs=6):
     epsilon = [index_high**2, index_low**2] * pairs
     thickness = [C0 / (4 * center_hz * index_high), C0 / (4 * center_hz * index_low)] * pairs
     return epsilon, thickness
+
+
+def bloch_wavenumber(frequency_hz, epsilon_pair, thickness_pair):
+    if len(epsilon_pair) != 2 or len(thickness_pair) != 2 or min(thickness_pair) <= 0:
+        raise ValueError("two positive-thickness dielectric layers required")
+    system = components(frequency_hz, epsilon_pair, thickness_pair)
+    k1, k2 = system["kz"][1:3]
+    y1, y2 = system["admittance"][1:3]
+    delta1, delta2 = k1 * thickness_pair[0], k2 * thickness_pair[1]
+    trace_half = np.cos(delta1) * np.cos(delta2) - 0.5 * (y1 / y2 + y2 / y1) * np.sin(delta1) * np.sin(delta2)
+    phase = np.arccos(trace_half.astype(complex))
+    phase = np.where(phase.imag > 0, -phase, phase)
+    return phase / sum(thickness_pair)

@@ -78,3 +78,13 @@ def test_bragg_stopband_reflection_increases_with_pair_count():
         results.append(m.stack(10e9, epsilon, thickness)["R"])
     assert results[1] > results[0]
     assert results[1] > 0.98
+
+
+def test_bloch_solution_recovers_uniform_medium_and_bragg_evanescence():
+    from emlab.core import C0
+
+    value = m.bloch_wavenumber(1e8, [4, 4], [0.01, 0.02])
+    assert value == pytest.approx(4 * np.pi * 1e8 / C0)
+    epsilon, thickness = m.bragg_mirror(10e9, 3, 1.5, 1)
+    stopband = m.bloch_wavenumber(10e9, epsilon, thickness)
+    assert stopband.imag < 0
