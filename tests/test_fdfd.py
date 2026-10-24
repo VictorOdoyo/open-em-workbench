@@ -12,3 +12,21 @@ def test_frequency_domain_pml_has_negative_imaginary_stretch_and_real_interior()
     assert stretch["xe"][0].imag < 0
     assert stretch["xe"][25] == 1
     assert np.allclose(stretch["ye"], stretch["ye"][::-1])
+
+
+def test_closed_helmholtz_operator_matches_analytic_discrete_sine_eigenvalue():
+    from emlab.core import C0
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((0, 0.2), (0, 0.1), 31, 21)
+    x, y = grid.mesh()
+    field = np.sin(np.pi * x / 0.2) * np.sin(np.pi * y / 0.1)
+    model = m.operator(grid, 0.5e9, 2, pml_cells=0)
+    value = (model["matrix"] @ field.ravel()).reshape(grid.shape)
+    eigenvalue = (
+        4 * np.sin(np.pi / (2 * (grid.nx - 1))) ** 2 / grid.dx**2
+        + 4 * np.sin(np.pi / (2 * (grid.ny - 1))) ** 2 / grid.dy**2
+    )
+    expected = (eigenvalue - 2 * (2 * np.pi * 0.5e9 / C0) ** 2) * field * model["coordinate_volume"]
+    assert np.allclose(value[1:-1, 1:-1], expected[1:-1, 1:-1], rtol=1e-11, atol=1e-13)
+    assert np.max(abs((model["matrix"] - model["matrix"].T).data), initial=0) < 1e-12

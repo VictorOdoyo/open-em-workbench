@@ -26,3 +26,25 @@ def coordinate_stretch(grid, frequency_hz, pml_cells=12, target_reflection=1e-8)
             )
             result[name + suffix] = kappa + sigma / (alpha + 2j * np.pi * frequency_hz)
     return result
+
+
+def operator(grid, frequency_hz, epsilon_r=1.0, pml_cells=12):
+    from scipy.sparse import diags
+
+    from .core import C0, finite_array
+    from .grid import dual_weights
+    from .operators import edge_geometry, incidence
+
+    epsilon = np.broadcast_to(finite_array(epsilon_r), grid.shape).astype(complex)
+    if np.any(epsilon.imag > 1e-12):
+        raise ValueError("passive permittivity required under exp(+i omega t)")
+    stretch = coordinate_stretch(grid, frequency_hz, pml_cells)
+    horizontal = stretch["ye"][:, None] / stretch["xh"][None, :]
+    vertical = stretch["xe"][None, :] / stretch["yh"][:, None]
+    length, area = edge_geometry(grid)
+    coefficient = np.r_[horizontal.ravel(), vertical.ravel()] * area / length
+    derivative = incidence(grid)
+    stiffness = derivative.T @ diags(coefficient) @ derivative
+    volume = dual_weights(grid) * stretch["ye"][:, None] * stretch["xe"][None, :]
+    matrix = (stiffness - diags(((2 * np.pi * frequency_hz / C0) ** 2 * epsilon * volume).ravel())).tocsr()
+    return {"matrix": matrix, "coordinate_volume": volume, "stretch": stretch}
