@@ -53,3 +53,14 @@ def test_cpml_reduces_a_returning_pulse_compared_with_pec():
     late = (time > 0.65e-9) & (time < 1.35e-9)
     assert np.max(abs(traces[0][late])) > 0.8
     assert np.max(abs(traces[1][late])) < 0.002
+
+
+def test_unit_courant_mur_boundary_transmits_a_discrete_impulse_without_reflection():
+    from emlab.core import ETA0
+
+    state = m.Mur1D(101, 0.001, courant=1.0)
+    state.e[30] = 1
+    state.h[29] = 1 / ETA0
+    for _ in range(250):
+        state.step()
+    assert np.max(abs(state.e)) < 1e-12

@@ -118,3 +118,18 @@ class CPML1D(Yee1D):
         raw = super()._gradient_h()
         self.psi_e = self.be * self.psi_e + self.ce * raw
         return raw / self.ke + self.psi_e
+
+
+class Mur1D(Yee1D):
+    def step(self, current_density=0):
+        from .core import C0
+
+        old = self.e[[0, 1, -2, -1]].copy()
+        super().step(current_density)
+        left_speed = C0 / np.sqrt(self.epsilon[0] * self.mu[0])
+        right_speed = C0 / np.sqrt(self.epsilon[-1] * self.mu[-1])
+        q_left = (left_speed * self.dt - self.dx) / (left_speed * self.dt + self.dx)
+        q_right = (right_speed * self.dt - self.dx) / (right_speed * self.dt + self.dx)
+        self.e[0] = old[1] + q_left * (self.e[1] - old[0])
+        self.e[-1] = old[2] + q_right * (self.e[-2] - old[3])
+        return self.e
