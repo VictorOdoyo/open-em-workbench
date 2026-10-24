@@ -11,3 +11,9 @@ def test_cartesian_grid_uses_physical_coordinates_and_consistent_shape():
     assert y[2, 3] == pytest.approx(1.6)
     with pytest.raises(ValueError):
         m.Grid2D(1, 8, 1, 1)
+
+
+def test_bounds_constructor_preserves_both_physical_endpoints():
+    grid = m.from_bounds((-1, 2), (0, 4), 13, 17)
+    assert grid.x[-1] == pytest.approx(2)
+    assert grid.y[-1] == pytest.approx(4)

@@ -32,3 +32,18 @@ class Grid2D:
 
     def mesh(self):
         return np.meshgrid(self.x, self.y, indexing="xy")
+
+
+def from_bounds(x_bounds, y_bounds, nx, ny):
+    if len(x_bounds) != 2 or len(y_bounds) != 2 or x_bounds[1] <= x_bounds[0] or y_bounds[1] <= y_bounds[0]:
+        raise ValueError("ordered two-point domain bounds required")
+    if not isinstance(nx, int) or not isinstance(ny, int) or min(nx, ny) < 3:
+        raise ValueError("at least three nodes per direction required")
+    return Grid2D(
+        nx,
+        ny,
+        (x_bounds[1] - x_bounds[0]) / (nx - 1),
+        (y_bounds[1] - y_bounds[0]) / (ny - 1),
+        x_bounds[0],
+        y_bounds[0],
+    )
