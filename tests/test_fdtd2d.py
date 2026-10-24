@@ -60,3 +60,12 @@ def test_rectangular_cavity_energy_is_conserved_with_anisotropic_spacing():
     for _ in range(300):
         state.step()
     assert m.stored_energy(state, modified=True) == pytest.approx(initial, rel=1e-12)
+
+
+def test_line_current_integrates_to_requested_amperes_after_refinement():
+    from emlab.grid import Grid2D
+
+    for dx in (0.002, 0.001):
+        state = m.TMz2D(Grid2D(21, 21, dx, dx))
+        current = m.line_current(state, (10, 10), 0.1)
+        assert np.sum(current) * state.grid.dx * state.grid.dy == pytest.approx(0.1)

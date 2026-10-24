@@ -135,3 +135,28 @@ def stored_energy(state, modified=False):
     else:
         magnetic = 0.5 * MU0 * state.mu * (np.sum(state.hx**2) + np.sum(state.hy**2)) * area
     return float(electric + magnetic)
+
+
+def line_current(state, index_yx, amplitude_a):
+    from .core import finite_array
+
+    amplitude = finite_array(amplitude_a, real=True)
+    if (
+        len(index_yx) != 2
+        or any(not isinstance(i, int) for i in index_yx)
+        or not 0 <= index_yx[0] < state.grid.ny
+        or not 0 <= index_yx[1] < state.grid.nx
+        or amplitude.ndim != 0
+    ):
+        raise ValueError("valid electric node index and scalar line current required")
+    iy, ix = index_yx
+    margin = getattr(state, "pml_cells", 0) + 1
+    if (
+        state.pec[iy, ix]
+        or not margin <= iy < state.grid.ny - margin
+        or not margin <= ix < state.grid.nx - margin
+    ):
+        raise ValueError("line current must lie outside PEC and PML regions")
+    result = np.zeros(state.grid.shape)
+    result[iy, ix] = amplitude / (state.grid.dx * state.grid.dy)
+    return result
