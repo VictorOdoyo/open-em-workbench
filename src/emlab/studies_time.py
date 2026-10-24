@@ -20,7 +20,15 @@ def _pulse_capture(scale, device, reference, start, stop):
         def current(time, state=state):
             return sheet_current(state, source_node, gaussian(time, 1.5e-9, 0.25e-9, 2e9))
 
-        outputs.append(evolve(state, steps, current, probes, snapshot_stride=max(1, steps // 24)))
+        outputs.append(
+            evolve(
+                state,
+                steps,
+                current,
+                probes,
+                snapshot_stride=max(1, int(1 / (8 * float(frequency.max()) * state.dt))),
+            )
+        )
     baseline, observed = outputs
     incident = fourier_integral(baseline["electric"], reference.dt, frequency, reference.dt)
     total = fourier_integral(observed["electric"], device.dt, frequency, device.dt)
@@ -70,6 +78,7 @@ def _pulse_capture(scale, device, reference, start, stop):
         "pulse_carrier_hz": 2e9,
         "spectrum_points": len(frequency),
         "spectrum_floor_relative": 1e-3,
+        "snapshot_samples_per_fastest_analyzed_period": 8,
     }
     return arrays, parameters
 
