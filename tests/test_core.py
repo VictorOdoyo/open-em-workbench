@@ -58,3 +58,9 @@ def test_mesh_order_is_fitted_from_error_scaling():
     order, coefficient = m.convergence_order([0.1, 0.05, 0.025], [0.03, 0.0075, 0.001875])
     assert order == pytest.approx(2)
     assert coefficient == pytest.approx(3)
+
+
+def test_richardson_recovers_limit_for_known_second_order_error():
+    limit, uncertainty = m.richardson(1.04, 1.01)
+    assert limit == pytest.approx(1)
+    assert uncertainty == pytest.approx(0.01)

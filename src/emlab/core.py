@@ -87,3 +87,13 @@ def convergence_order(spacings, errors):
         raise ValueError("positive distinct spacings and nonzero errors required")
     slope, intercept = np.polyfit(np.log(spacings), np.log(errors), 1)
     return float(slope), float(np.exp(intercept))
+
+
+def richardson(coarse, fine, ratio=2, order=2):
+    if ratio <= 1 or order <= 0:
+        raise ValueError("refinement ratio above one and positive order required")
+    coarse, fine = finite_array(coarse), finite_array(fine)
+    if coarse.shape != fine.shape:
+        raise ValueError("aligned coarse and fine observables required")
+    correction = (fine - coarse) / (ratio**order - 1)
+    return fine + correction, abs(correction)
