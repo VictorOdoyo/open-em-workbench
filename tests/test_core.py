@@ -29,3 +29,10 @@ def test_field_and_power_decibels_do_not_confuse_amplitude_with_energy():
     assert np.allclose(m.from_db(m.to_db([0.1, 1, 10])), [0.1, 1, 10])
     with pytest.raises(ValueError):
         m.to_db(-1)
+
+
+def test_relative_error_preserves_amplitude_and_complex_phase_mistakes():
+    assert m.relative_error([1, 2], [2, 4]) == pytest.approx(1)
+    assert m.relative_error([1j, 2j], [-1j, -2j]) == pytest.approx(2)
+    with pytest.raises(ValueError):
+        m.relative_error([0], [1])

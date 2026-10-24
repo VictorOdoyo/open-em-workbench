@@ -42,3 +42,20 @@ def to_db(values, *, field=False):
 
 def from_db(values, *, field=False):
     return 10.0 ** (finite_array(values, real=True) / (20 if field else 10))
+
+
+def relative_error(reference, observed, weights=None):
+    reference, observed = finite_array(reference), finite_array(observed)
+    if reference.shape != observed.shape:
+        raise ValueError("matching field shapes required")
+    weights = (
+        np.ones(reference.shape)
+        if weights is None
+        else np.broadcast_to(finite_array(weights, real=True), reference.shape)
+    )
+    if np.any(weights < 0):
+        raise ValueError("nonnegative quadrature weights required")
+    denominator = np.sum(weights * abs(reference) ** 2)
+    if denominator <= 0:
+        raise ValueError("nonzero reference energy required")
+    return float(np.sqrt(np.sum(weights * abs(observed - reference) ** 2) / denominator))
