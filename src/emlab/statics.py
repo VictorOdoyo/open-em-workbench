@@ -51,3 +51,17 @@ def image_surface_charge(radial_distance_m, charge_c, height_m):
     if height_m <= 0 or np.any(rho < 0):
         raise ValueError("positive source height and nonnegative radial coordinates required")
     return -charge_c * height_m / (2 * np.pi * (rho**2 + height_m**2) ** 1.5)
+
+
+def line_charge(points_xy, charge_c_m, source_xy=(0.0, 0.0), epsilon_r=1.0, reference_radius_m=1.0):
+    from .core import EPS0, finite_array
+
+    points, source = finite_array(points_xy, real=True), finite_array(source_xy, real=True)
+    if points.shape[-1] != 2 or source.shape != (2,) or min(epsilon_r, reference_radius_m) <= 0:
+        raise ValueError("two-dimensional points/source and positive dielectric/reference radius required")
+    displacement = points - source
+    radius = np.linalg.norm(displacement, axis=-1)
+    if np.any(radius == 0):
+        raise ValueError("line-charge observation is singular")
+    factor = charge_c_m / (2 * np.pi * EPS0 * epsilon_r)
+    return -factor * np.log(radius / reference_radius_m), factor * displacement / radius[..., None] ** 2

@@ -40,3 +40,12 @@ def test_grounded_plane_has_zero_potential_tangential_field_and_correct_induced_
     integral = np.trapezoid(2 * np.pi * rho * m.image_surface_charge(rho, 1e-9, 0.05), rho)
     expected = -1e-9 * (1 - 0.05 / np.sqrt(5**2 + 0.05**2))
     assert integral == pytest.approx(expected, rel=1e-5)
+
+
+def test_line_charge_gauss_law_and_reference_radius_gauge():
+    from emlab.core import EPS0
+
+    potential, field = m.line_charge([0.2, 0], 1e-9, reference_radius_m=0.2)
+    assert potential == pytest.approx(0)
+    assert EPS0 * 2 * np.pi * 0.2 * field[0] == pytest.approx(1e-9)
+    assert field[1] == 0
