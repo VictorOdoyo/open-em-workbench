@@ -18,3 +18,14 @@ def test_line_chain_determinant_and_zero_length_are_exact_physical_constraints()
     matrix = m.line_matrix(gamma, 75, 0.3)
     assert np.linalg.det(matrix) == pytest.approx(1)
     assert np.allclose(m.line_matrix(gamma, 75, 0), np.eye(2))
+
+
+def test_stable_line_scattering_matches_chain_reference_and_survives_thick_loss():
+    from emlab.networks import abcd_to_s
+
+    gamma, impedance = m.rlgc(np.linspace(1e8, 2e8, 5), 4, 300e-9, 0.001, 100e-12)
+    expected = abcd_to_s(m.line_matrix(gamma, impedance, 0.7))
+    assert np.allclose(m.line_scattering(gamma, impedance, 0.7), expected)
+    thick = m.line_scattering(1e5 + 1j, 60 + 3j, 1)
+    assert np.all(np.isfinite(thick))
+    assert thick[1, 0] == 0
