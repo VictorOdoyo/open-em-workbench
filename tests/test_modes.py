@@ -46,3 +46,15 @@ def test_below_cutoff_fields_decay_and_above_cutoff_fields_accumulate_phase():
     assert gamma[0].real > 0 and gamma[0].imag == 0
     assert gamma[1].imag > 0 and gamma[1].real == 0
     assert abs(np.exp(-gamma[0] * 0.1)) < 0.001
+
+
+def test_te_tm_impedances_have_dual_cutoff_behavior():
+    from emlab.core import ETA0
+
+    frequency, cutoff = 15e9, 10e9
+    te = m.guide_impedance(frequency, cutoff, "te")
+    tm = m.guide_impedance(frequency, cutoff, "tm")
+    assert te.real > ETA0 and 0 < tm.real < ETA0
+    assert te * tm == pytest.approx(ETA0**2)
+    assert m.guide_impedance(5e9, cutoff, "te").imag > 0
+    assert m.guide_impedance(5e9, cutoff, "tm").imag < 0

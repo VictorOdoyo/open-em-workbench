@@ -93,3 +93,17 @@ def guide_propagation(frequency_hz, cutoff_hz, epsilon_r=1.0, mu_r=1.0):
         raise ValueError("positive frequency cutoff and material constants required")
     speed = C0 / np.sqrt(epsilon_r * mu_r)
     return 2 * np.pi / speed * np.sqrt((cutoff_hz**2 - frequency**2).astype(complex))
+
+
+def guide_impedance(frequency_hz, cutoff_hz, polarization="te", epsilon_r=1.0, mu_r=1.0):
+    from .core import EPS0, MU0
+
+    gamma = guide_propagation(frequency_hz, cutoff_hz, epsilon_r, mu_r)
+    if np.any(abs(gamma) == 0):
+        raise ValueError("exact cutoff impedance requires a limiting formulation")
+    omega = 2 * np.pi * np.asarray(frequency_hz)
+    if polarization == "te":
+        return 1j * omega * MU0 * mu_r / gamma
+    if polarization == "tm":
+        return gamma / (1j * omega * EPS0 * epsilon_r)
+    raise ValueError("polarization must be te or tm")
