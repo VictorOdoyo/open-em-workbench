@@ -58,3 +58,12 @@ def test_coax_high_frequency_loss_scales_as_skin_depth_and_dielectric_frequency(
     second = m.coax_losses(4e8, 0.001, 0.003, 2.25, loss_tangent=0.002)
     assert second["resistance_ohm_m"] / first["resistance_ohm_m"] == pytest.approx(2)
     assert second["conductance_s_m"] / first["conductance_s_m"] == pytest.approx(4)
+
+
+def test_quarter_wave_transformer_matches_at_design_frequency():
+    from emlab.core import C0
+
+    section = m.quarter_wave(50, 200, 1e9, C0)
+    gamma = 2j * np.pi * 1e9 / C0
+    impedance = m.input_impedance(gamma, section["impedance_ohm"], section["length_m"], 200)
+    assert impedance == pytest.approx(50)

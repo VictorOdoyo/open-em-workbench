@@ -122,3 +122,12 @@ def coax_losses(
     resistance = surface.real / (2 * np.pi) * (1 / inner_radius_m + 1 / outer_radius_m)
     conductance = 2 * np.pi * np.asarray(frequency_hz) * parameters["capacitance_f_m"] * loss_tangent
     return {"resistance_ohm_m": resistance, "conductance_s_m": conductance, **parameters}
+
+
+def quarter_wave(source_impedance, load_impedance, center_hz, velocity_m_s):
+    if min(source_impedance, load_impedance, center_hz, velocity_m_s) <= 0:
+        raise ValueError("positive resistive matching impedances frequency and velocity required")
+    return {
+        "impedance_ohm": np.sqrt(source_impedance * load_impedance),
+        "length_m": velocity_m_s / (4 * center_hz),
+    }
