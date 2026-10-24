@@ -29,3 +29,18 @@ def test_cli_data_batch_can_be_rendered_without_resolving(tmp_path):
     assert not (tmp_path / "multilayer-coating" / "figure.png").exists()
     assert main(["render", str(tmp_path)]) == 0
     assert (tmp_path / "multilayer-coating" / "figure.png").exists()
+
+
+def test_cli_archive_replay_preserves_source_and_verify_detects_corruption(tmp_path):
+    from emlab.reporting import load_archive
+
+    original, replay = tmp_path / "original", tmp_path / "replay"
+    main(["run", "--case", "multilayer-coating", "--output", str(original)])
+    source = load_archive(original / "fields.npz")["provenance"]
+    main(["replay", str(original / "fields.npz"), "--output", str(replay)])
+    assert load_archive(replay / "fields.npz")["provenance"] == source
+    main(["verify", str(replay)])
+    (replay / "summary.csv").write_text("changed")
+    with pytest.raises(SystemExit) as error:
+        main(["verify", str(replay)])
+    assert error.value.code == 2

@@ -28,6 +28,11 @@ def parser():
     batch.add_argument("--output", type=Path, required=True)
     render = commands.add_parser("render", help="render a captured catalog without solving")
     render.add_argument("directory", type=Path)
+    replay = commands.add_parser("replay", help="render an archive while preserving source metadata")
+    replay.add_argument("archive", type=Path)
+    replay.add_argument("--output", type=Path, required=True)
+    verify = commands.add_parser("verify", help="verify report or catalog integrity")
+    verify.add_argument("directory", type=Path)
     return root
 
 
@@ -62,6 +67,20 @@ def main(argv=None):
             from .batch import render
 
             print(f"Rendered {render(args.directory, print)} studies")
+        elif args.command == "replay":
+            from .reporting import load_archive, write_report
+
+            print(write_report(load_archive(args.archive), args.output))
+        elif args.command == "verify":
+            if (args.directory / "catalog.json").is_file():
+                from .batch import verify
+
+                print(f"Verified {verify(args.directory)} studies")
+            else:
+                from .reporting import verify_report
+
+                verify_report(args.directory)
+                print("Verified report")
     except (ValueError, OSError, RuntimeError, KeyError) as error:
         root.error(str(error))
     return 0
