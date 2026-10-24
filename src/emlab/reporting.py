@@ -312,3 +312,45 @@ they are unsigned integrity records, not certificates of physical validity.</p><
     manifest = {name: hashlib.sha256((directory / name).read_bytes()).hexdigest() for name in sorted(files)}
     write_json(directory / "manifest.json", manifest)
     return directory / "index.html"
+
+
+def verify_report(directory):
+    import hashlib
+    import json
+    import re
+    from pathlib import Path
+
+    directory = Path(directory)
+    manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+    required = {
+        "fields.npz",
+        "figure.png",
+        "summary.csv",
+        "summary.json",
+        "parameters.json",
+        "configuration.json",
+        "provenance.json",
+        "index.html",
+    }
+    if not isinstance(manifest, dict) or not required.issubset(manifest):
+        raise ValueError("complete report manifest required")
+    for name, expected in manifest.items():
+        if (
+            Path(name).name != name
+            or "/" in name
+            or "\\" in name
+            or not isinstance(expected, str)
+            or not re.fullmatch(r"[a-f0-9]{64}", expected)
+        ):
+            raise ValueError("manifest requires safe local filenames and SHA-256 digests")
+        if hashlib.sha256((directory / name).read_bytes()).hexdigest() != expected:
+            raise ValueError("report integrity mismatch: " + name)
+    result = load_archive(directory / "fields.npz")
+    for key in ("summary", "parameters", "configuration", "provenance"):
+        exported = json.loads((directory / (key + ".json")).read_text(encoding="utf-8"))
+        if digest(exported) != digest(result[key]):
+            raise ValueError("exported metadata disagrees with archive: " + key)
+    for key, rows in result["tables"].items():
+        if rows and "table_" + key + ".csv" not in manifest:
+            raise ValueError("manifest omits an exported data table")
+    return True
