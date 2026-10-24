@@ -145,3 +145,91 @@ def bragg(scale=1, seed=42):
             "Dielectrics are nondispersive and lossless in this demonstration.",
         ],
     )
+
+
+def absorbing_stack(scale=1, seed=42):
+    from .core import EPS0
+    from .layers import absorption_by_layer, fields, stack
+    from .results import curve, make
+
+    center = 10e9
+    epsilon, thickness = [2 - 0.3j, 4 - 0.8j], [0.01, 0.008]
+    frequency = np.linspace(0.5 * center, 1.5 * center, 200 * scale + 1)
+    spectrum = stack(frequency, epsilon, thickness)
+    design = stack(center, epsilon, thickness)
+    absorbed = absorption_by_layer(center, epsilon, thickness)
+    profile_z, profile_e, profile_flux, rows = [], [], [], []
+    position = 0.0
+    for index, distance in enumerate(thickness):
+        local = np.linspace(0, distance, 400 * scale + 1)
+        field = fields(center, epsilon, thickness, index, local)
+        joule = (
+            np.trapezoid(
+                0.5 * 2 * np.pi * center * EPS0 * (-epsilon[index].imag) * abs(field["electric"]) ** 2, local
+            )
+            / field["incident_flux_w_m2"]
+        )
+        rows.append({"layer": index, "flux_absorption": absorbed[index], "joule_absorption": joule})
+        profile_z.extend(position + local)
+        profile_e.extend(abs(field["electric"]))
+        profile_flux.extend(field["flux_w_m2"] / field["incident_flux_w_m2"])
+        position += distance
+    defect = max(abs(row["flux_absorption"] - row["joule_absorption"]) for row in rows)
+    return make(
+        "absorbing-stack",
+        {
+            "center_hz": center,
+            "epsilon_layers_real_imag": [[e.real, e.imag] for e in epsilon],
+            "thickness_m": thickness,
+            "incident_peak_e_v_m": 1,
+            "seed": seed,
+        },
+        {
+            "total_absorption": design["A"],
+            "layer_absorption_sum": np.sum(absorbed),
+            "maximum_joule_flux_defect": defect,
+        },
+        {
+            "frequency_ghz": frequency / 1e9,
+            "r": spectrum["R"],
+            "t": spectrum["T"],
+            "a": spectrum["A"],
+            "position_mm": np.array(profile_z) * 1e3,
+            "electric": profile_e,
+            "flux": profile_flux,
+        },
+        [
+            curve(
+                "Passive lossy stack",
+                "frequency_ghz",
+                [("r", "R"), ("t", "T"), ("a", "A")],
+                "Frequency (GHz)",
+                "Normalized power",
+            ),
+            curve(
+                "Internal electric standing wave",
+                "position_mm",
+                [("electric", "|E|")],
+                "Distance through stack (mm)",
+                "Electric field (V/m)",
+            ),
+            curve(
+                "Local energy flow decreases through loss",
+                "position_mm",
+                [("flux", "normalized flux")],
+                "Distance through stack (mm)",
+                "Poynting flux / incident flux",
+            ),
+        ],
+        {
+            "layers": rows,
+            "spectrum": [
+                {"frequency_hz": f, "R": r, "T": t, "A": a}
+                for f, r, t, a in zip(frequency, spectrum["R"], spectrum["T"], spectrum["A"], strict=True)
+            ],
+        },
+        [
+            "Complex permittivity is a finite-band phenomenological model, not a causal broadband fit.",
+            "Independent Joule integration uses peak phasors and the factor one half.",
+        ],
+    )
