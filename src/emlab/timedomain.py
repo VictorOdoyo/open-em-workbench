@@ -8,3 +8,14 @@ def courant_step(spacings_m, epsilon_min=1.0, mu_min=1.0, safety=0.95):
     if spacing.size < 1 or np.any(spacing <= 0) or min(epsilon_min, mu_min) <= 0 or not 0 < safety <= 1:
         raise ValueError("positive spacings/materials and Courant safety in (0,1] required")
     return safety * np.sqrt(epsilon_min * mu_min) / (C0 * np.sqrt(np.sum(1 / spacing**2)))
+
+
+def electric_coefficients(epsilon_r, conductivity_s_m, dt_s):
+    from .core import EPS0, finite_array
+
+    epsilon = EPS0 * finite_array(epsilon_r, real=True)
+    conductivity = finite_array(conductivity_s_m, real=True)
+    if dt_s <= 0 or not np.isfinite(dt_s) or np.any(epsilon <= 0) or np.any(conductivity < 0):
+        raise ValueError("positive permittivity/timestep and nonnegative conductivity required")
+    ratio = conductivity * dt_s / (2 * epsilon)
+    return (1 - ratio) / (1 + ratio), dt_s / (epsilon * (1 + ratio))
