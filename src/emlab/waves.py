@@ -26,3 +26,30 @@ def longitudinal_wavenumber(frequency_hz, epsilon_r=1, mu_r=1, transverse_wavenu
     square = (2 * np.pi * frequency / C0) ** 2 * epsilon * mu - transverse**2
     root = np.sqrt(square.astype(complex))
     return np.where(root.imag > 0, -root, root)
+
+
+def fresnel_oblique(frequency_hz, epsilon_left, epsilon_right, angle_radians, polarization="te"):
+    from .core import C0, EPS0, MU0
+
+    if not 0 <= angle_radians < np.pi / 2 or epsilon_left <= 0 or epsilon_right <= 0:
+        raise ValueError("lossless positive dielectrics and incidence in the forward hemisphere required")
+    omega = 2 * np.pi * frequency_hz
+    transverse = omega / C0 * np.sqrt(epsilon_left) * np.sin(angle_radians)
+    left = longitudinal_wavenumber(frequency_hz, epsilon_left, transverse_wavenumber=transverse)
+    right = longitudinal_wavenumber(frequency_hz, epsilon_right, transverse_wavenumber=transverse)
+    if polarization == "te":
+        yl, yr = left / (omega * MU0), right / (omega * MU0)
+    elif polarization == "tm":
+        yl, yr = omega * EPS0 * epsilon_left / left, omega * EPS0 * epsilon_right / right
+    else:
+        raise ValueError("polarization must be te or tm")
+    reflection = (yl - yr) / (yl + yr)
+    transmission = 1 + reflection
+    return {
+        "r": reflection,
+        "t": transmission,
+        "R": abs(reflection) ** 2,
+        "T": float(np.real(yr) / np.real(yl) * abs(transmission) ** 2),
+        "kz_left": left,
+        "kz_right": right,
+    }

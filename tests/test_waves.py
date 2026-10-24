@@ -22,3 +22,13 @@ def test_longitudinal_branch_decays_above_total_internal_reflection_threshold():
     assert kz.imag < 0
     assert abs(np.exp(-1j * kz * 1)) < 1
     assert m.longitudinal_wavenumber(1e9, 4, transverse_wavenumber=k0) == pytest.approx(np.sqrt(3) * k0)
+
+
+def test_oblique_brewster_zero_and_total_internal_reflection():
+    angle = np.arctan(2)
+    tm = m.fresnel_oblique(1e9, 1, 4, angle, "tm")
+    assert abs(tm["r"]) < 1e-14
+    for pol in ("te", "tm"):
+        result = m.fresnel_oblique(1e9, 4, 1, np.pi / 3, pol)
+        assert result["R"] == pytest.approx(1)
+        assert result["T"] == pytest.approx(0)
