@@ -386,3 +386,11 @@ def _cavity_result(name, capture, seed):
 
 def cavity(scale=1, seed=42):
     return _cavity_result("fdtd-cavity", _cavity_capture(scale, 1.0, 0.0), seed)
+
+
+def lossy_cavity(scale=1, seed=42):
+    result = _cavity_result("fdtd-lossy-cavity", _cavity_capture(scale, 2.0, 0.01), seed)
+    result["assumptions"].append(
+        "Conductivity is passive and frequency independent; the decay reference includes electric Joule loss."
+    )
+    return result

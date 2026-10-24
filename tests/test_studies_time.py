@@ -26,3 +26,11 @@ def test_cavity_study_matches_discrete_frequency_and_conserves_modified_energy()
     assert summary["relative_discrete_frequency_error"] < 1e-9
     assert summary["maximum_relative_discrete_energy_drift"] < 1e-11
     assert summary["continuum_frequency_relative_error"] < 0.003
+
+
+def test_lossy_cavity_study_recovers_positive_quality_factor_and_discrete_decay():
+    summary = m.lossy_cavity()["summary"]
+    assert summary["relative_discrete_frequency_error"] < 1e-9
+    assert summary["relative_discrete_quality_error"] < 1e-8
+    assert 1 < summary["quality_factor_measured"] < 100
+    assert summary["pole_fit_residual"] < 1e-10
