@@ -207,3 +207,84 @@ def design(scale=1, seed=42):
             "Capacitance per unit length equals twice stored energy at the imposed one volt.",
         ],
     )
+
+
+def uncertainty(scale=1, seed=42):
+    from .core import EPS0, random_stream
+    from .results import curve, make
+    from .uncertainty import linearized_covariance, mean_bootstrap
+
+    nominal = np.array([0.001, 0.003, 2.25])
+    sigma = np.array([10e-6, 15e-6, 0.03])
+    correlation = np.array([[1, 0.3, 0], [0.3, 1, 0], [0, 0, 1]])
+    covariance = sigma[:, None] * correlation * sigma[None, :]
+    rng = random_stream(seed, "coax-manufacturing")
+    samples = rng.multivariate_normal(nominal, covariance, size=512 * scale)
+    a, b, epsilon = samples.T
+    if np.any((a <= 0) | (b <= a) | (epsilon <= 0)):
+        raise ValueError("assumed normal tolerance draw produced nonphysical geometry")
+    capacitance = 2 * np.pi * EPS0 * epsilon / np.log(b / a)
+    nominal_c = 2 * np.pi * EPS0 * nominal[2] / np.log(nominal[1] / nominal[0])
+    logarithm = np.log(nominal[1] / nominal[0])
+    jacobian = nominal_c * np.array(
+        [1 / (nominal[0] * logarithm), -1 / (nominal[1] * logarithm), 1 / nominal[2]]
+    )
+    predicted = float(np.sqrt(linearized_covariance(jacobian, covariance)[0, 0]))
+    measured = float(np.std(capacitance, ddof=1))
+    mean_interval = mean_bootstrap(capacitance, seed=seed)
+    population_interval = np.quantile(capacitance, [0.025, 0.975])
+    histogram, edges = np.histogram(capacitance * 1e12, bins=25, density=True)
+    center = (edges[:-1] + edges[1:]) / 2
+    gaussian = np.exp(-0.5 * ((center - nominal_c * 1e12) / (predicted * 1e12)) ** 2) / (
+        predicted * 1e12 * np.sqrt(2 * np.pi)
+    )
+    rows = [
+        {"inner_radius_m": ia, "outer_radius_m": ib, "epsilon_r": ie, "capacitance_f_m": ic}
+        for ia, ib, ie, ic in zip(a, b, epsilon, capacitance, strict=True)
+    ]
+    return make(
+        "manufacturing-uncertainty",
+        {
+            "nominal_inner_radius_m": nominal[0],
+            "nominal_outer_radius_m": nominal[1],
+            "nominal_epsilon_r": nominal[2],
+            "parameter_standard_deviations": sigma,
+            "correlation_matrix": correlation,
+            "sample_count": len(samples),
+            "bootstrap_resamples": 2000,
+            "seed": seed,
+        },
+        {
+            "nominal_capacitance_f_m": nominal_c,
+            "sample_mean_f_m": float(np.mean(capacitance)),
+            "linearized_std_f_m": predicted,
+            "sample_std_f_m": measured,
+            "std_relative_difference": abs(measured - predicted) / predicted,
+            "mean_ci95_low_f_m": mean_interval[0],
+            "mean_ci95_high_f_m": mean_interval[1],
+            "population_p025_f_m": population_interval[0],
+            "population_p975_f_m": population_interval[1],
+        },
+        {
+            "capacitance_pf_m": center,
+            "density": histogram,
+            "linearized_density": gaussian,
+            "samples": samples,
+            "sample_capacitance_f_m": capacitance,
+        },
+        [
+            curve(
+                "Assumed manufacturing population",
+                "capacitance_pf_m",
+                [("density", "Monte Carlo density"), ("linearized_density", "linearized normal density")],
+                "Capacitance (pF/m)",
+                "Probability density (m/pF)",
+            )
+        ],
+        {"samples": rows},
+        [
+            "These are assumed correlated normal tolerances, not measured manufacturing data.",
+            "Independent draws represent a population; the percentile bootstrap interval estimates its mean.",
+            "Population percentiles describe unit-to-unit variation and are not confidence limits on the mean.",
+        ],
+    )

@@ -22,3 +22,14 @@ def test_design_study_improves_energy_with_fixed_material_budget():
     assert result["summary"]["capacitance_gain_fraction"] > 0.05
     assert result["summary"]["material_mean_defect"] < 1e-12
     assert np.all(np.diff(result["arrays"]["energy_pj_m"]) >= 0)
+
+
+def test_uncertainty_study_distinguishes_mean_precision_and_unit_spread():
+    result = m.uncertainty()
+    summary = result["summary"]
+    assert summary["std_relative_difference"] < 0.15
+    assert (
+        summary["mean_ci95_high_f_m"] - summary["mean_ci95_low_f_m"]
+        < (summary["population_p975_f_m"] - summary["population_p025_f_m"]) / 10
+    )
+    assert np.array_equal(result["arrays"]["samples"], m.uncertainty()["arrays"]["samples"])
