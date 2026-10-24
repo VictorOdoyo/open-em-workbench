@@ -162,3 +162,19 @@ def subspace_overlap(grid, first, second, material_weight=1.0):
     qa, _ = np.linalg.qr(columns_a)
     qb, _ = np.linalg.qr(columns_b)
     return np.clip(np.linalg.svd(qa.conj().T @ qb, compute_uv=False), 0, 1)
+
+
+def dielectric_shift(grid, electric_field, epsilon_r, delta_epsilon):
+    from .core import finite_array
+    from .grid import dual_weights
+
+    field = finite_array(electric_field)
+    epsilon = np.broadcast_to(finite_array(epsilon_r, real=True), grid.shape)
+    change = np.broadcast_to(finite_array(delta_epsilon, real=True), grid.shape)
+    if field.shape != grid.shape or np.any(epsilon <= 0):
+        raise ValueError("electric eigenfield and positive baseline dielectric map required")
+    density = abs(field) ** 2 * dual_weights(grid)
+    denominator = float(np.sum(epsilon * density))
+    if denominator <= 0:
+        raise ValueError("nonzero mode energy required")
+    return -0.5 * float(np.sum(change * density)) / denominator

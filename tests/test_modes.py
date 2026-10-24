@@ -92,3 +92,16 @@ def test_degenerate_subspace_metric_is_invariant_to_unitary_mode_mixing():
     rotation = np.array([[1, 1j], [1j, 1]]) / np.sqrt(2)
     second = np.einsum("ij,jyx->iyx", rotation, first)
     assert np.allclose(m.subspace_overlap(grid, first, second), 1)
+
+
+def test_first_order_cavity_perturbation_matches_a_resolved_dielectric_change():
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((0, 0.02), (0, 0.01), 29, 23)
+    initial = m.cavity_modes(grid, count=1)
+    delta = np.zeros(grid.shape)
+    delta[8:15, 10:19] = 1e-4
+    predicted = m.dielectric_shift(grid, initial["fields"][0], 1, delta)
+    changed = m.cavity_modes(grid, 1 + delta, count=1)
+    measured = changed["cutoff_hz"][0] / initial["cutoff_hz"][0] - 1
+    assert measured == pytest.approx(predicted, rel=1e-4)
