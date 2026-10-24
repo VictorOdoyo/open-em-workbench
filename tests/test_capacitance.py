@@ -47,3 +47,14 @@ def test_floating_plate_reproduces_series_capacitor_voltage_division():
     assert voltages[1] == pytest.approx(6)
     assert charges[1] == pytest.approx(0, abs=1e-26)
     assert charges[2] == pytest.approx(12e-12)
+
+
+def test_common_differential_transform_preserves_quadratic_field_energy():
+    matrix = 1e-11 * np.array([[3, -1], [-1, 3]])
+    transform = np.array([[1.0, 0.5], [1, -0.5]])
+    modal = m.transform(matrix, transform)
+    voltage = np.array([2.0, 3.0])
+    assert m.terminal_response(matrix, transform @ voltage)[1] == pytest.approx(
+        m.terminal_response(modal, voltage)[1]
+    )
+    assert abs(modal[0, 1]) < 1e-25

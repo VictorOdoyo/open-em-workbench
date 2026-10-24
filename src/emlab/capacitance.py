@@ -92,3 +92,14 @@ def floating_voltages(matrix, driven_indices, driven_voltages, charges=0):
             block, specified[floating] - matrix[np.ix_(floating, driven)] @ values
         )
     return mvoltage, matrix @ mvoltage
+
+
+def transform(matrix, voltage_transform):
+    from .core import finite_array
+
+    matrix = finite_array(matrix, real=True, ndim=2)
+    transform = finite_array(voltage_transform, real=True, ndim=2)
+    if matrix.shape != (transform.shape[0], transform.shape[0]):
+        raise ValueError("physical terminal count must match transform rows")
+    terminal_response(matrix, np.zeros(len(matrix)))
+    return transform.T @ matrix @ transform
