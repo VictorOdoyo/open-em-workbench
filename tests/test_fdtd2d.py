@@ -118,3 +118,23 @@ def test_two_dimensional_recording_has_deterministic_capture_times_and_probe_axe
     assert np.array_equal(result["snapshot_steps"], [0, 20, 40, 60, 80, 83])
     assert result["snapshots"].shape == (6, 35, 41)
     assert np.all(np.isfinite(result["energy_j_m"]))
+
+
+def test_measured_lossy_cavity_pole_matches_independent_discrete_recurrence():
+    from emlab.grid import from_bounds
+    from emlab.monitors import ringdown_pole
+
+    grid = from_bounds((0, 0.2), (0, 0.1), 41, 31)
+    state = m.TMz2D(grid, epsilon_r=2, conductivity_s_m=0.01)
+    m.cavity_mode(state, 1, 1)
+    values = []
+    for _ in range(500):
+        state.step()
+        values.append(state.ez[15, 20])
+    measured = ringdown_pole(values, state.dt)
+    roots = m.conductive_cavity_pole(grid, 1, 1, state.dt, 2, 0.01)
+    pole = roots[roots.imag > 0][0]
+    expected_frequency = np.angle(pole) / (2 * np.pi * state.dt)
+    expected_decay = -np.log(abs(pole)) / state.dt
+    assert measured["frequency_hz"] == pytest.approx(expected_frequency, rel=1e-10)
+    assert measured["decay_rate_s"] == pytest.approx(expected_decay, rel=1e-10)

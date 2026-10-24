@@ -241,3 +241,19 @@ def evolve(state, steps, current=None, probes=(), snapshot_stride=0):
         "final_hx": state.hx.copy(),
         "final_hy": state.hy.copy(),
     }
+
+
+def conductive_cavity_pole(grid, mode_x, mode_y, dt_s, epsilon_r=1.0, conductivity_s_m=0.0, mu_r=1.0):
+    from .core import C0, EPS0
+
+    if min(mode_x, mode_y) < 1 or min(epsilon_r, mu_r, dt_s) <= 0 or conductivity_s_m < 0:
+        raise ValueError("positive cavity mode/material/timestep and passive conductivity required")
+    width, height = grid.x[-1] - grid.x0, grid.y[-1] - grid.y0
+    eigenvalue = 4 * (
+        np.sin(mode_x * np.pi * grid.dx / (2 * width)) ** 2 / grid.dx**2
+        + np.sin(mode_y * np.pi * grid.dy / (2 * height)) ** 2 / grid.dy**2
+    )
+    loss = conductivity_s_m * dt_s / (2 * EPS0 * epsilon_r)
+    decay_factor = (1 - loss) / (1 + loss)
+    trace = (2 - (C0 * dt_s) ** 2 * eigenvalue / (epsilon_r * mu_r)) / (1 + loss)
+    return np.roots([1, -trace, decay_factor])
