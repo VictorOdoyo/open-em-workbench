@@ -37,3 +37,12 @@ def test_gauss_charge_reaction_balances_source_charge_and_ground():
     fixed = boundary_mask(grid)
     assert np.max(abs(reaction[~fixed])) < 1e-24
     assert reaction[fixed].sum() == pytest.approx(-np.sum(density * dual_weights(grid)), rel=1e-12)
+
+
+def test_uniform_field_energy_matches_continuum_volume_integral():
+    from emlab.core import EPS0
+    from emlab.grid import from_bounds
+
+    grid = from_bounds((0, 2), (0, 1), 17, 13)
+    x, _ = grid.mesh()
+    assert m.energy(grid, 3 * x, 4) == pytest.approx(0.5 * EPS0 * 4 * 9 * 2, rel=1e-13)

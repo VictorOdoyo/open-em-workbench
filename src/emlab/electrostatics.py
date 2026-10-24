@@ -48,3 +48,14 @@ def charge_reaction(grid, potential, epsilon_r=1, charge_density=0):
     return (EPS0 * (stiffness(grid, epsilon_r) @ potential.ravel())).reshape(
         grid.shape
     ) - density * dual_weights(grid)
+
+
+def energy(grid, potential, epsilon_r=1):
+    from .core import EPS0, finite_array
+    from .operators import stiffness
+
+    potential = finite_array(potential, real=True)
+    if potential.shape != grid.shape:
+        raise ValueError("potential must match grid")
+    values = potential.ravel()
+    return float(0.5 * EPS0 * (values @ (stiffness(grid, epsilon_r) @ values)))
