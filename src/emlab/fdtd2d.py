@@ -160,3 +160,26 @@ def line_current(state, index_yx, amplitude_a):
     result = np.zeros(state.grid.shape)
     result[iy, ix] = amplitude / (state.grid.dx * state.grid.dy)
     return result
+
+
+def cavity_mode(state, mode_x=1, mode_y=1, amplitude_v_m=1.0):
+    if (
+        not isinstance(mode_x, int)
+        or not isinstance(mode_y, int)
+        or min(mode_x, mode_y) < 1
+        or mode_x >= state.grid.nx - 1
+        or mode_y >= state.grid.ny - 1
+    ):
+        raise ValueError("resolvable positive TM cavity mode indices required")
+    if type(state) is not TMz2D or np.ptp(state.epsilon) > 0:
+        raise ValueError("uniform rectangular PEC cavity required")
+    x, y = state.grid.mesh()
+    width, height = state.grid.x[-1] - state.grid.x0, state.grid.y[-1] - state.grid.y0
+    state.ez[:] = (
+        amplitude_v_m
+        * np.sin(mode_x * np.pi * (x - state.grid.x0) / width)
+        * np.sin(mode_y * np.pi * (y - state.grid.y0) / height)
+    )
+    state.ez[state.pec] = 0
+    state.hx.fill(0)
+    state.hy.fill(0)

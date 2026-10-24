@@ -69,3 +69,23 @@ def test_line_current_integrates_to_requested_amperes_after_refinement():
         state = m.TMz2D(Grid2D(21, 21, dx, dx))
         current = m.line_current(state, (10, 10), 0.1)
         assert np.sum(current) * state.grid.dx * state.grid.dy == pytest.approx(0.1)
+
+
+def test_cavity_time_trace_matches_independent_discrete_dispersion_prediction():
+    from emlab.core import C0
+    from emlab.grid import from_bounds
+    from emlab.monitors import ringdown_pole
+    from emlab.timedomain import dispersion_frequency
+
+    grid = from_bounds((0, 0.2), (0, 0.1), 41, 31)
+    state = m.TMz2D(grid)
+    m.cavity_mode(state, 1, 2)
+    trace = []
+    for _ in range(400):
+        state.step()
+        trace.append(state.ez[8, 20])
+    measured = ringdown_pole(trace, state.dt)
+    expected = dispersion_frequency([np.pi / 0.2, 2 * np.pi / 0.1], [grid.dx, grid.dy], state.dt, C0) / (
+        2 * np.pi
+    )
+    assert measured["frequency_hz"] == pytest.approx(expected, rel=1e-10)
