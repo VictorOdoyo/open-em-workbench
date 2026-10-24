@@ -83,3 +83,13 @@ def mode_gram(grid, fields, material_weight=1.0):
     if fields.ndim != 3 or fields.shape[1:] != grid.shape or np.any(weight <= 0):
         raise ValueError("mode fields and positive material quadrature required")
     return np.einsum("iyx,jyx,yx->ij", fields.conj(), fields, weight)
+
+
+def guide_propagation(frequency_hz, cutoff_hz, epsilon_r=1.0, mu_r=1.0):
+    from .core import C0, finite_array
+
+    frequency = finite_array(frequency_hz, real=True)
+    if np.any(frequency <= 0) or min(cutoff_hz, epsilon_r, mu_r) <= 0:
+        raise ValueError("positive frequency cutoff and material constants required")
+    speed = C0 / np.sqrt(epsilon_r * mu_r)
+    return 2 * np.pi / speed * np.sqrt((cutoff_hz**2 - frequency**2).astype(complex))

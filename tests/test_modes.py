@@ -39,3 +39,10 @@ def test_tm_mode_gram_and_mesh_order_are_independent_of_eigenvector_scaling():
         errors.append(abs(result["cutoff_hz"][0] - exact))
         spacing.append(grid.dx)
     assert 1.95 < convergence_order(spacing, errors)[0] < 2.05
+
+
+def test_below_cutoff_fields_decay_and_above_cutoff_fields_accumulate_phase():
+    gamma = m.guide_propagation(np.array([5e9, 15e9]), 10e9)
+    assert gamma[0].real > 0 and gamma[0].imag == 0
+    assert gamma[1].imag > 0 and gamma[1].real == 0
+    assert abs(np.exp(-gamma[0] * 0.1)) < 0.001
