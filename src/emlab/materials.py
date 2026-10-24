@@ -93,3 +93,15 @@ def rotated_tensor(principal_values, rotation):
     if not np.allclose(rotation.T @ rotation, np.eye(len(values)), atol=1e-12):
         raise ValueError("orthogonal coordinate transformation required")
     return (rotation * values) @ rotation.T
+
+
+def laminate(permittivities, fractions):
+    from .core import finite_array
+
+    epsilon = finite_array(permittivities).astype(complex)
+    fraction = finite_array(fractions, real=True, ndim=1)
+    if epsilon.shape != fraction.shape or np.any(fraction < 0) or not np.isclose(fraction.sum(), 1):
+        raise ValueError("paired material fractions summing to one required")
+    if np.any(epsilon.real <= 0) or np.any(epsilon.imag > 1e-12):
+        raise ValueError("passive positive-real dielectric constituents required")
+    return 1 / np.sum(fraction / epsilon), np.sum(fraction * epsilon)

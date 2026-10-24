@@ -66,3 +66,10 @@ def test_rotated_anisotropy_preserves_principal_energy():
     tensor = m.rotated_tensor([2, 6], rotation)
     assert np.allclose(np.linalg.eigvalsh(tensor), [2, 6])
     assert tensor[0, 1] != 0
+
+
+def test_laminate_has_harmonic_normal_and_arithmetic_tangential_permittivity():
+    normal, tangent = m.laminate([2, 8], [0.5, 0.5])
+    assert normal == pytest.approx(3.2)
+    assert tangent == pytest.approx(5)
+    assert normal <= tangent
