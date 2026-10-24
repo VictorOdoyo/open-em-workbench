@@ -43,3 +43,11 @@ def test_round_trip_loss_is_accounted_for_in_reflected_amplitude():
     coefficient = m.reflection_along(0.2 + 3j, 1, positions, -1)
     assert coefficient[-1] == pytest.approx(-1)
     assert abs(coefficient[0]) == pytest.approx(np.exp(-0.4))
+
+
+def test_coax_lc_product_recovers_material_wave_speed():
+    from emlab.core import C0
+
+    parameters = m.coax_parameters(0.001, 0.003, 2.25)
+    assert parameters["velocity_m_s"] == pytest.approx(C0 / 1.5)
+    assert 40 < parameters["impedance_ohm"] < 45

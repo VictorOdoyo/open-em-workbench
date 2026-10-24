@@ -92,3 +92,19 @@ def reflection_along(gamma, length_m, positions_m, load_reflection):
     if length_m < 0 or np.any((positions < 0) | (positions > length_m)) or np.any(gamma.real < 0):
         raise ValueError("passive line and positions within its physical extent required")
     return reflected * np.exp(-2 * gamma * (length_m - positions))
+
+
+def coax_parameters(inner_radius_m, outer_radius_m, epsilon_r=1, mu_r=1):
+    from .capacitance import coaxial
+    from .core import MU0
+
+    capacitance = coaxial(inner_radius_m, outer_radius_m, epsilon_r)
+    if mu_r <= 0:
+        raise ValueError("positive permeability required")
+    inductance = MU0 * mu_r / (2 * np.pi) * np.log(outer_radius_m / inner_radius_m)
+    return {
+        "inductance_h_m": inductance,
+        "capacitance_f_m": capacitance,
+        "impedance_ohm": np.sqrt(inductance / capacitance),
+        "velocity_m_s": 1 / np.sqrt(inductance * capacitance),
+    }
