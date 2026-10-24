@@ -171,7 +171,14 @@ def cavity_mode(state, mode_x=1, mode_y=1, amplitude_v_m=1.0):
         or mode_y >= state.grid.ny - 1
     ):
         raise ValueError("resolvable positive TM cavity mode indices required")
-    if type(state) is not TMz2D or np.ptp(state.epsilon) > 0:
+    from .grid import boundary_mask
+
+    if (
+        type(state) is not TMz2D
+        or np.ptp(state.epsilon) > 0
+        or np.ptp(state.conductivity) > 0
+        or not np.array_equal(state.pec, boundary_mask(state.grid))
+    ):
         raise ValueError("uniform rectangular PEC cavity required")
     x, y = state.grid.mesh()
     width, height = state.grid.x[-1] - state.grid.x0, state.grid.y[-1] - state.grid.y0

@@ -138,3 +138,16 @@ def test_measured_lossy_cavity_pole_matches_independent_discrete_recurrence():
     expected_decay = -np.log(abs(pole)) / state.dt
     assert measured["frequency_hz"] == pytest.approx(expected_frequency, rel=1e-10)
     assert measured["decay_rate_s"] == pytest.approx(expected_decay, rel=1e-10)
+
+
+def test_isolated_cavity_initializer_rejects_internal_pec_and_nonuniform_damping():
+    from emlab.grid import Grid2D
+
+    grid = Grid2D(9, 9, 0.001, 0.001)
+    pec = np.zeros(grid.shape, bool)
+    pec[4, 4] = True
+    sigma = np.zeros(grid.shape)
+    sigma[3, 3] = 0.1
+    for state in (m.TMz2D(grid, pec_mask=pec), m.TMz2D(grid, conductivity_s_m=sigma)):
+        with pytest.raises(ValueError, match="uniform rectangular"):
+            m.cavity_mode(state)
