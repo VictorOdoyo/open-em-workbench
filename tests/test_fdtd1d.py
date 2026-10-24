@@ -76,3 +76,14 @@ def test_lossless_pec_leapfrog_energy_is_conserved_at_machine_precision():
         energies.append(m.stored_energy(state, modified=True))
     assert np.max(abs(np.array(energies) - initial)) / initial < 1e-12
     assert m.stored_energy(state) > 0
+
+
+def test_smooth_packet_moves_at_the_material_wave_speed():
+    from emlab.core import C0
+
+    state = m.Yee1D(501, 0.001, epsilon_r=4)
+    m.gaussian_packet(state, 0.15, 0.02)
+    for _ in range(80):
+        state.step()
+    measured = np.argmax(state.e) * state.dx
+    assert measured == pytest.approx(0.15 + C0 / 2 * 80 * state.dt, abs=0.0015)

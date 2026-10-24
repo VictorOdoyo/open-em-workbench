@@ -146,3 +146,19 @@ def stored_energy(state, modified=False):
         future_h = state.h - state.ch * np.diff(state.e) / state.dx
         magnetic = 0.5 * MU0 * np.sum(state.mu * state.h * future_h) * state.dx
     return float(electric + magnetic)
+
+
+def gaussian_packet(state, center_m, width_m, amplitude_v_m=1.0):
+    from .core import C0, ETA0
+
+    if width_m <= 0 or not 0 < center_m < (state.nodes - 1) * state.dx:
+        raise ValueError("positive pulse width and interior center required")
+    if np.ptp(state.epsilon) > 0 or np.ptp(state.mu) > 0 or np.any(state.conductivity != 0):
+        raise ValueError("initial traveling packet requires a homogeneous lossless medium")
+    speed = C0 / np.sqrt(state.epsilon[0] * state.mu[0])
+    eta = ETA0 * np.sqrt(state.mu[0] / state.epsilon[0])
+    electric_x = np.arange(state.nodes) * state.dx
+    magnetic_x = (np.arange(state.nodes - 1) + 0.5) * state.dx + speed * state.dt / 2
+    state.e[:] = amplitude_v_m * np.exp(-(((electric_x - center_m) / width_m) ** 2))
+    state.h[:] = amplitude_v_m / eta * np.exp(-(((magnetic_x - center_m) / width_m) ** 2))
+    state.e[[0, -1]] = 0
