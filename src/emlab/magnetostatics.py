@@ -164,3 +164,11 @@ def coaxial_mutual(radius_first_m, radius_second_m, separation_m):
         * ((2 - parameter) * ellipk(parameter) - 2 * ellipe(parameter))
         / np.sqrt(parameter)
     )
+
+
+def loop_inductance(radius_m, wire_radius_m, mu_r=1.0, internal_flux=False):
+    from .core import MU0
+
+    if not 0 < wire_radius_m <= radius_m / 20 or mu_r <= 0:
+        raise ValueError("thin wire radius at most one twentieth of loop radius required")
+    return MU0 * mu_r * radius_m * (np.log(8 * radius_m / wire_radius_m) - 2 + (0.25 if internal_flux else 0))

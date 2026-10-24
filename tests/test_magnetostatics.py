@@ -82,3 +82,14 @@ def test_polygon_neumann_integral_converges_to_coaxial_elliptic_solution():
         errors.append(abs(m.mutual_inductance(first, second) - exact))
     assert errors[2] < errors[1] < errors[0]
     assert errors[-1] / exact < 0.001
+
+
+def test_internal_flux_term_is_separate_from_external_thin_wire_inductance():
+    from emlab.core import MU0
+
+    external = m.loop_inductance(0.1, 0.001)
+    uniform_current = m.loop_inductance(0.1, 0.001, internal_flux=True)
+    assert external > 0
+    assert uniform_current - external == pytest.approx(MU0 * 0.1 / 4)
+    with pytest.raises(ValueError, match="thin wire"):
+        m.loop_inductance(0.1, 0.02)
