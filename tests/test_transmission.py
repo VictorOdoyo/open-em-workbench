@@ -36,3 +36,10 @@ def test_quarter_wave_line_inverts_resistive_load_and_swaps_open_short():
     assert m.input_impedance(gamma, 50, 1, 100) == pytest.approx(25)
     assert abs(m.input_impedance(gamma, 50, 1, 0)) > 1e15
     assert abs(m.input_impedance(gamma, 50, 1, np.inf)) < 1e-12
+
+
+def test_round_trip_loss_is_accounted_for_in_reflected_amplitude():
+    positions = np.array([0.0, 0.5, 1.0])
+    coefficient = m.reflection_along(0.2 + 3j, 1, positions, -1)
+    assert coefficient[-1] == pytest.approx(-1)
+    assert abs(coefficient[0]) == pytest.approx(np.exp(-0.4))

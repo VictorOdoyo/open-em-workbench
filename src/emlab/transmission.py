@@ -81,3 +81,14 @@ def input_impedance(gamma, characteristic_impedance, length_m, load_impedance):
         regular = impedance * (safe + impedance * tangent) / (impedance + safe * tangent)
         open_value = impedance / tangent
     return np.where(opened, open_value, regular)
+
+
+def reflection_along(gamma, length_m, positions_m, load_reflection):
+    from .core import finite_array
+
+    gamma = finite_array(gamma)
+    positions = finite_array(positions_m, real=True)
+    reflected = finite_array(load_reflection)
+    if length_m < 0 or np.any((positions < 0) | (positions > length_m)) or np.any(gamma.real < 0):
+        raise ValueError("passive line and positions within its physical extent required")
+    return reflected * np.exp(-2 * gamma * (length_m - positions))
