@@ -46,3 +46,17 @@ def extract(grid, labels, epsilon_r=1):
         charges = conductor_charges(grid, labels, basis[label], epsilon_r)
         matrix[:, label] = [charges[int(i)] for i in identifiers]
     return {"matrix": matrix, "basis": basis}
+
+
+def terminal_response(matrix, voltages):
+    from .core import finite_array
+
+    matrix = finite_array(matrix, real=True, ndim=2)
+    voltage = finite_array(voltages, real=True, ndim=1)
+    scale = max(float(np.max(abs(matrix))), np.finfo(float).tiny)
+    if matrix.shape != (len(voltage), len(voltage)) or not np.allclose(matrix, matrix.T, atol=scale * 1e-12):
+        raise ValueError("reciprocal square capacitance matrix matching terminal voltages required")
+    if np.min(np.linalg.eigvalsh(matrix)) < -scale * 1e-10:
+        raise ValueError("passive positive-semidefinite capacitance matrix required")
+    charge = matrix @ voltage
+    return charge, float(0.5 * voltage @ charge)

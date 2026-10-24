@@ -28,3 +28,14 @@ def test_extracted_capacitance_has_reciprocity_gauge_nullspace_and_positive_ener
     assert np.all(np.linalg.eigvalsh(matrix[1:, 1:]) > 0)
     assert matrix[1, 2] < 0
     assert np.allclose(np.sum(result["basis"], axis=0), 1)
+
+
+def test_terminal_energy_is_gauge_invariant_and_rejects_active_capacitance():
+    matrix = 2e-11 * np.array([[1, -1], [-1, 1]])
+    charge, energy = m.terminal_response(matrix, [0, 3])
+    shifted, shifted_energy = m.terminal_response(matrix, [5, 8])
+    assert np.allclose(charge, shifted, atol=1e-25)
+    assert energy == pytest.approx(shifted_energy)
+    assert energy == pytest.approx(0.5 * 2e-11 * 9)
+    with pytest.raises(ValueError, match="passive"):
+        m.terminal_response(-matrix, [0, 3])
